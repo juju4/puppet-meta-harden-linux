@@ -1,0 +1,26 @@
+FORGE
+  remote: https://forgeapi.puppetlabs.com
+  specs:
+    hardening-hardening_stdlib (0.1.2)
+    hardening-os_hardening (2.1.1)
+      puppetlabs-stdlib (< 5.0.0, >= 4.6.0)
+      thias-sysctl (< 2.0.0, >= 1.0.6)
+    hardening-ssh_hardening (1.0.5)
+      puppetlabs-stdlib (>= 4.2.0)
+      saz-ssh (>= 2.3.6)
+    puppetlabs-concat (4.2.1)
+      puppetlabs-stdlib (< 5.0.0, >= 4.13.1)
+    puppetlabs-firewall (1.12.0)
+      puppetlabs-stdlib (< 5.0.0, >= 4.0.0)
+    puppetlabs-stdlib (4.25.1)
+    saz-ssh (4.0.0)
+      puppetlabs-concat (< 5.0.0, >= 2.2.0)
+      puppetlabs-stdlib (< 5.0.0, >= 4.24.0)
+    thias-sysctl (1.0.6)
+
+DEPENDENCIES
+  hardening-hardening_stdlib (>= 0)
+  hardening-os_hardening (>= 0)
+  hardening-ssh_hardening (>= 0)
+  puppetlabs-firewall (>= 0)
+
