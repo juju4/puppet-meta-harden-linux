@@ -52,6 +52,7 @@ before_install:
   - gem install kitchen-puppet
   - gem install librarian-puppet
   - gem install kitchen-inspec
+  - gem install kitchen-sync
   - gem install kitchen-lxd_cli
   - gem list
   - which kitchen
