@@ -30,7 +30,7 @@ before_install:
   - gem install librarian-puppet
   - gem install kitchen-inspec
   - gem install kitchen-sync
-  - gem install kitchen-lxd_cli
+  - gem install kitchen-docker
   - gem list
   - which kitchen
   - env KITCHEN_LOCAL_YAML=.kitchen.docker.yml kitchen diagnose --all
