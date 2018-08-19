@@ -65,12 +65,18 @@ before_install:
 ## The command "sudo -E su $USER -c "which kitchen"" failed and exited with 1 during .
 #  - sudo -E su $USER -c "which kitchen"
   - sudo -E su $USER -c "env PATH=$PATH kitchen diagnose --all"
-#  - sudo -E su $USER -c "kitchen diagnose --all"
-#  - sudo -E -u $USER kitchen diagnose --all
 
 script:
 #  - KITCHEN_LOCAL_YAML=.kitchen.local.yml bundle exec kitchen verify ${INSTANCE}
-  - sudo -E su $USER -c "env PATH=$PATH kitchen verify default-${distribution}-${version//./} -l debug || (cat $HOME/.kitchen/logs/default-${distribution}-${version//./}.log; find /tmp/kitchen)"
+  - sudo -E su $USER -c "env PATH=$PATH kitchen verify default-${distribution}-${version//./} -l debug"
+
+after_failure:
+# https://github.com/inspec/kitchen-inspec/issues/142
+  - sudo -E su $USER -c "ssh-add -l"
+
+after_script:
+  # Clean up
+  - sudo -E su $USER -c "env PATH=$PATH kitchen destroy default-${distribution}-${version//./}"
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
