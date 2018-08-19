@@ -10,7 +10,7 @@ provisioner:
   manifests_path: manifests
   modules_path: modules
 #  hiera_data_path: hieradata
-  puppet_debug: true
+  puppet_debug: false
   puppet_verbose: true
 #  require_chef_omnibus: false
 #  require_chef_for_busser: false
