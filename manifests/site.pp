@@ -124,6 +124,8 @@
 #    class { '::cisecurity': }
 
 #  include ::auditd
+
+  # no user option for puppetlabs/ntp
   include ntp
   class { 'fail2ban': }
   class { 'osquery': }
