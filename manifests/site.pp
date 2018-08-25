@@ -41,6 +41,7 @@
       allow_agent_forwarding => $allow_agent_forwarding,
       max_auth_retries       => $max_auth_retries,
       options                => $server_options,
+      protocol               => 2,
     }
     class { 'ssh_hardening::client':
       ipv6_enabled => $ipv6_enabled,
