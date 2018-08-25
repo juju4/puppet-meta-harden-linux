@@ -15,6 +15,7 @@
     {"name":"puppetlabs/apt","version_requirement":">= 6.0.0 < 8.0.0"},
     {"name":"puppetlabs/ntp","version_requirement":">= 7.2.0 < 9.0.0"},
     {"name":"puppetlabs/concat","version_requirement":">= 5.0.0 < 6.0.0"},
+    {"name":"puppetlabs/accounts","version_requirement":">= 2.0.0 < 6.0.0"},
     {"name":"puppet/fail2ban","version_requirement":">= 2.3.0 < 6.0.0"},
     {"name":"puppet/rsyslog","version_requirement":">= 3.2.0 < 6.0.0"},
     {"name":"geoffwilliams/auditd","version_requirement":">= 3.0.2 < 6.0.0"},

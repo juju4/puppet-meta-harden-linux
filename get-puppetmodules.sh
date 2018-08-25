@@ -17,6 +17,7 @@ m=modules
 [ ! -d $m/stdlib ] && git clone https://github.com/puppetlabs/puppetlabs-stdlib.git $m/stdlib
 # https://tickets.puppetlabs.com/browse/MODULES-2145
 [ ! -d $m/apt ] && git clone --config transfer.fsckobjects=false --config fetch.fsckobjects=false --config receive.fsckobjects=false https://github.com/puppetlabs/puppetlabs-apt.git $m/apt
+[ ! -d $m/accounts ] && git clone https://github.com/puppetlabs/puppetlabs-accounts.git $m/accounts
 [ ! -d $m/hardening-stdlib ] && git clone https://github.com/dev-sec/puppet-hardening-stdlib $m/hardening-stdlib
 [ ! -d $m/os_hardening ] && git clone https://github.com/dev-sec/puppet-os-hardening $m/os_hardening
 [ ! -d $m/ssh_hardening ] && git clone https://github.com/dev-sec/puppet-ssh-hardening $m/ssh_hardening
