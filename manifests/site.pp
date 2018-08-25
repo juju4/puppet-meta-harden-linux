@@ -20,6 +20,17 @@
         }
       }
 
+      # sshd-48: Verifies if strong DH primes are used in /etc/ssh/moduli
+      exec { "ssh-moduli-cleaning":
+          # just remove weak ones
+          command => "awk '\$5 >= 2000' /etc/ssh/moduli > /etc/ssh/moduli.strong && mv /etc/ssh/moduli.strong /etc/ssh/moduli",
+          # re-generate. much longer
+          #command => "ssh-keygen -G /etc/ssh/moduli.all -b 4096 && ssh-keygen -T /etc/ssh/moduli.safe -f /etc/ssh/moduli.all && mv /etc/ssh/moduli.safe /etc/ssh/moduli"
+          path        => ['/bin', '/usr/bin', '/usr/sbin'],
+          timeout => 1800,
+          onlyif => "/usr/bin/test $(awk '$5 < 2047 && $5 ~ /^[0-9]+$/ { print $5 }' /etc/ssh/moduli | uniq | wc -c) == 0",
+      }
+
       class { 'epel': }
 #      class { 'rkhunter': }
 
