@@ -146,14 +146,14 @@
             type => legacy,
             priority => 01,
         },
-        PrivDropToUser => {
-            value => 'syslog',
-            type => legacy,
-        },
-        PrivDropToGroup => {
-            value => 'syslog',
-            type => legacy,
-        },
+#        PrivDropToUser => {
+#            value => 'syslog',
+#            type => legacy,
+#        },
+#        PrivDropToGroup => {
+#            value => 'syslog',
+#            type => legacy,
+#        },
         workDirectory => {
             value => '/var/spool/rsyslog',
         },
