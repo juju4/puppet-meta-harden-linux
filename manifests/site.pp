@@ -40,6 +40,10 @@
 #    'Solaris':           { include role::solaris } # Apply the solaris class
     'RedHat', 'CentOS':  {
 
+      $user_sudogroups = [
+        'wheel',
+      ]
+
       # required for /etc/modprobe.d
       package { 'kmod':
         provider => 'yum',
@@ -71,6 +75,10 @@
 
     }
     /^(Debian|Ubuntu)$/: {
+
+      $user_sudogroups = [
+        'sudo',
+      ]
 
       $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod' ]
       $deb_packages.each |String $pkg| {
@@ -235,10 +243,7 @@
 
   accounts::user { 'jeff':
     comment => 'Jeff McCune',
-    groups  => [
-      'admin',
-      'sudonopw',
-    ],
+    groups  => $user_sudogroups,
     uid     => '1112',
     gid     => '1112',
     sshkeys => [
