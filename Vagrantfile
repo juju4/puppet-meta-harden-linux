@@ -17,6 +17,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "shell", inline: "yum install -y puppet-agent"
   # modules fetched from vagrant host
   config.vm.provision "shell", inline: "puppet module list --tree"
+  config.vm.provision "shell", inline: "puppet module list --tree --modulepath /vagrant/modules"
 
   config.vm.provision :puppet do |puppet|
     puppet.manifest_file  = "site.pp"
@@ -30,6 +31,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     puppet.facter = { 'fqdn'  => config.vm.hostname }
   end
 
-#  config.vm.synced_folder ".", "/vagrant"
+  config.vm.synced_folder ".", "/vagrant"
+  # mirror kitchen path
+  config.vm.synced_folder ".", "/tmp/kitchen"
 
 end
