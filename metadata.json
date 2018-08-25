@@ -23,8 +23,7 @@
     {"name":"itmanagerro/rkhunter","version_requirement":">= 1.0.1 < 6.0.0"},
     {"name":"ouroboros8/telegraf","version_requirement":">= 2.0.1 < 6.0.0"},
     {"name":"eyp/postfix","version_requirement":">= 0.2.32 < 6.0.0"},
-    {"name":"justinjl/smarthost","version_requirement":">= 1.0.0 < 6.0.0"},
-    {"name":"cohdjn/cisecurity","version_requirement":">= 0.7.1 < 6.0.0"}
+    {"name":"justinjl/smarthost","version_requirement":">= 1.0.0 < 6.0.0"}
   ],
   "data_provider": null,
   "operatingsystem_support": [
