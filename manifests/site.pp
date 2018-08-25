@@ -230,6 +230,94 @@
   }
 
   # mailserver
+  class { 'postfix':
+    inetinterfaces    => 'all',
+    mynetworks        => [ '127.0.0.1/32' ],
+    myhostname        => 'smtp3.systemadmin.es',
+    smtpdbanner       => 'smtp3.systemadmin.es ESMTP',
+    opportunistictls  => true,
+    subjectselfsigned => '/C=UK/ST=Shropshire/L=Telford/O=systemadmin/CN=smtp3.systemadmin.es',
+    generatecert      => true,
+    syslog_name       => 'private',
+  }
+
+  class { 'postfix::vmail': }
+  postfix::vmail::account { 'systemadmin@systemadmin.es':
+    accountname => 'systemadmin',
+    domain      => 'systemadmin.com',
+    password    => 'systemadmin_secret_passw0rd',
+  }
+
+  postfix::instance { '0.0.0.0:2525':
+    type    => 'inet',
+    private => 'n',
+    chroot  => 'n',
+    command => 'smtpd',
+    opts    => {
+                'content_filter'               => '',
+                'smtpd_helo_restrictions'      => 'permit_mynetworks,reject_non_fqdn_helo_hostname,reject_invalid_helo_hostname,permit',
+                'smtpd_sender_restrictions'    => 'permit_mynetworks,reject_non_fqdn_sender,reject_unknown_sender_domain,permit',
+                'smtpd_recipient_restrictions' => 'permit_mynetworks,permit_sasl_authenticated,reject_unauth_destination,reject_unknown_recipient_domain,reject_rbl_client cbl.abuseat.org, reject_rbl_client b.barracudacentral.org,reject',
+                'mynetworks'                   => '127.0.0.0/8,10.0.2.15/32',
+                'receive_override_options'     => 'no_header_body_checks',
+                'smtpd_helo_required'          => 'yes',
+                'smtpd_client_restrictions'    => '',
+                'smtpd_restriction_classes'    => '',
+                'disable_vrfy_command'         => 'yes',
+                #'strict_rfc821_envelopes'      => 'yes',
+                'smtpd_sasl_auth_enable'       => 'no',
+                'syslog_name'                   => 'public',
+                'biff'                          => 'no',
+                'append_dot_mydomain'           => 'no',
+                'default_process_limit'         => 100,
+                'smtpd_client_connection_count_limit' => 100,
+                'smtpd_client_connection_rate_limit'  => 100,
+                'queue_minfree'                 => 20971520,
+                'header_size_limit'             => 51200,
+                'message_size_limit'            => 10485760,
+                'smtpd_recipient_limit'         => 10,
+                'smtpd_delay_reject'            => 'yes',
+                'smtpd_helo_required'           => 'yes',
+                # https://isc.sans.edu/forums/diary/Hardening+Postfix+Against+FTP+Relay+Attacks/22086/
+                'smtpd_forbidden_commands'      => 'CONNECT,GET,POST,USER,PASS',
+                # https://cipherli.st/
+                'smtpd_use_tls'                 => 'yes',
+                'smtpd_tls_security_level'      => 'may',
+                'smtpd_tls_auth_only'           => 'yes',
+                #'smtpd_tls_cert_file'           => '',
+                #'smtpd_tls_key_file'            => '',
+                'smtpd_tls_session_cache_database' => 'btree:${data_directory}/smtpd_scache',
+                'smtpd_tls_mandatory_protocols' => '!SSLv2,!SSLv3,!TLSv1,!TLSv1.1',
+                'smtpd_tls_protocols'           => '!SSLv2,!SSLv3,!TLSv1,!TLSv1.1',
+                'smtpd_tls_mandatory_ciphers'   => 'medium',
+                'tls_medium_cipherlist'         => 'AES128+EECDH:AES128+EDH',
+                # https://marc.info/?l=postfix-users&m=140058464921413&w=2
+                # https://marc.info/?l=postfix-users&m=140059435225323&w=2
+                #if it is *not* a public MX
+                #'smtpd_tls_exclude_ciphers'      => 'aNULL, eNULL, EXP, MD5, IDEA, KRB5, RC2, SEED, SRP',
+                'smtp_tls_exclude_ciphers'       => 'EXPORT, LOW',
+              },
+    order   => '99',
+  }
+  # suggested, RFC2142
+  postfix::vmail::alias { 'webmaster':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'support':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'noc':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'abuse':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'security':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'soc':
+    aliasto => [ 'root' ],
+  }
   class { '::smarthost' :
     smarthost   => 'mail.yourprovider.com',
     domain      => 'yourdomain.com',
