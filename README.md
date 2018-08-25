@@ -32,6 +32,11 @@ $ vagrant ssh
 
 ## Troubleshooting & Known issues
 
+* local puppet module dependencies
+```
+$ librarian-puppet install --verbose
+$ puppet module list --tree --modulepath /path/to/modules
+```
 
 ## License
 
