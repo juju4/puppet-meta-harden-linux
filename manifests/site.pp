@@ -130,6 +130,27 @@
 
   # FIXME! missing ActionResumeRetryCount, ActionQueueTimeoutEnqueue, ActionQueueSaveOnShutdown
   class { 'rsyslog::server':
+    global_config   => {
+        umask => {
+            value => '0022',
+            type => legacy,
+            priority => 01,
+        },
+        PrivDropToUser => {
+            value => 'syslog',
+            type => legacy,
+        },
+        PrivDropToGroup => {
+            value => 'syslog',
+            type => legacy,
+        },
+        workDirectory => {
+            value => '/var/spool/rsyslog',
+        },
+        maxMessageSize => {
+            value => '64k',
+        }
+    },
     legacy_config   => {
 
 # RedHat normal setup
