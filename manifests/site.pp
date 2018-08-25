@@ -139,3 +139,10 @@
         }
     }
   }
+
+  exec { "yum-update":
+    command => "yum clean all; yum -q -y update --exclude cvs; rm -rf /var/tmp/forceyum",
+    path        => ['/bin', '/usr/bin', '/usr/sbin'],
+    timeout => 1800,
+#    onlyif => "/usr/bin/test `/bin/date +%d` -eq 06 && test `/bin/date +%H` -eq 11 || test -e /var/tmp/forceyum",
+  }
