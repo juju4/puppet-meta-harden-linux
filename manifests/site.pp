@@ -196,6 +196,13 @@
     }
   }
 
+  # mailserver
+  class { '::smarthost' :
+    smarthost   => 'mail.yourprovider.com',
+    domain      => 'yourdomain.com',
+    mta         => postfix,
+  }
+
   file { '/etc/profile.d/security':
     ensure => present,
     source => 'file:///tmp/kitchen/files/profile.erb',
