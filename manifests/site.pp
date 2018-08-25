@@ -1,4 +1,3 @@
-node default {
 
   class { 'os_hardening': }
 #  class { 'ssh_hardening::server': }
@@ -55,4 +54,3 @@ node default {
 
 #    class { '::cisecurity': }
 
-}
