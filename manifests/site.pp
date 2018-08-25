@@ -55,3 +55,17 @@
 
 #    class { '::cisecurity': }
 
+#  include ::auditd
+  include ntp
+  class { 'epel': }
+  class { 'fail2ban': }
+  class { 'osquery': }
+
+  case $facts['os']['name'] {
+#    'Solaris':           { include role::solaris } # Apply the solaris class
+    'RedHat', 'CentOS':  {
+      class { 'rkhunter': }
+    }
+#    /^(Debian|Ubuntu)$/: { include role::debian  } # Apply the debian class
+#    default:             { include role::generic } # Apply the generic class
+  }
