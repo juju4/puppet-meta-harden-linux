@@ -1,4 +1,52 @@
 
+  $pkgs_upgradeall = false
+
+  case $facts['os']['name'] {
+#    'Solaris':           { include role::solaris } # Apply the solaris class
+    'RedHat', 'CentOS':  {
+
+      # required for /etc/modprobe.d
+      package { 'kmod':
+        provider => 'yum',
+        ensure   => 'present',
+      }
+
+      if $pkgs_upgradeall {
+        exec { "yum-update":
+          command => "yum clean all; yum -q -y update --exclude cvs; rm -rf /var/tmp/forceyum",
+          path        => ['/bin', '/usr/bin', '/usr/sbin'],
+          timeout => 1800,
+#          onlyif => "/usr/bin/test `/bin/date +%d` -eq 06 && test `/bin/date +%H` -eq 11 || test -e /var/tmp/forceyum",
+        }
+      }
+
+      class { 'epel': }
+#      class { 'rkhunter': }
+
+    }
+    /^(Debian|Ubuntu)$/: {
+
+      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod' ]
+      $deb_packages.each |String $pkg| {
+        package { "${pkg}":
+          provider => 'apt',
+          ensure   => 'present',
+        }
+      }
+
+      if $pkgs_upgradeall {
+        exec { "apt-update":
+          command => "apt-get -qy clean; apt-get -qy update; apt-get -qy -o 'Dpkg::Options::=--force-confdef' -o 'Dpkg::Options::=--force-confold' upgrade",
+          environment => [ "DEBIAN_FRONTEND=noninteractive" ],
+          path        => ['/bin', '/usr/bin', '/usr/sbin', '/sbin' ],
+          timeout => 1800,
+        }
+      }
+
+    }
+#    default:             { include role::generic } # Apply the generic class
+  }
+
   class { 'os_hardening': }
 #  class { 'ssh_hardening::server': }
 #  class { 'ssh_hardening::client': }
@@ -57,18 +105,8 @@
 
 #  include ::auditd
   include ntp
-  class { 'epel': }
   class { 'fail2ban': }
   class { 'osquery': }
-
-  case $facts['os']['name'] {
-#    'Solaris':           { include role::solaris } # Apply the solaris class
-    'RedHat', 'CentOS':  {
-      class { 'rkhunter': }
-    }
-#    /^(Debian|Ubuntu)$/: { include role::debian  } # Apply the debian class
-#    default:             { include role::generic } # Apply the generic class
-  }
 
   # FIXME! missing ActionResumeRetryCount, ActionQueueTimeoutEnqueue, ActionQueueSaveOnShutdown
   class { 'rsyslog::server':
@@ -138,13 +176,6 @@
             ],
         }
     }
-  }
-
-  exec { "yum-update":
-    command => "yum clean all; yum -q -y update --exclude cvs; rm -rf /var/tmp/forceyum",
-    path        => ['/bin', '/usr/bin', '/usr/sbin'],
-    timeout => 1800,
-#    onlyif => "/usr/bin/test `/bin/date +%d` -eq 06 && test `/bin/date +%H` -eq 11 || test -e /var/tmp/forceyum",
   }
 
   file { '/etc/profile.d/security':
