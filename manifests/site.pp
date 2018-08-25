@@ -69,3 +69,73 @@
 #    /^(Debian|Ubuntu)$/: { include role::debian  } # Apply the debian class
 #    default:             { include role::generic } # Apply the generic class
   }
+
+  # FIXME! missing ActionResumeRetryCount, ActionQueueTimeoutEnqueue, ActionQueueSaveOnShutdown
+  class { 'rsyslog::server':
+    legacy_config   => {
+
+# RedHat normal setup
+#       kern_priv_rule => {
+#           key => "kern.*",
+#           value => "/dev/console"
+#        },
+        auth_priv_rule => {
+            key => "authpriv.*",
+            value => "/var/log/secure",
+        },
+        messages_rule => {
+            key => "*.info;mail.none;authpriv.none;cron.none",
+            value => "/var/log/messages",
+        },
+        mail_rule => {
+            key => "mail.*",
+            value => "-/var/log/maillog",
+        },
+        cron_rule => {
+            key => "cron.*",
+            value => "/var/log/cron",
+        },
+        emergency_rule => {
+            key => "*.emerg",
+            value => ":omusrmsg:*",
+        },
+        spooler_rule => {
+            key => "uucp,news.crit",
+            value => "/var/log/spooler",
+        },
+        boot_rule => {
+            key => "local7.*",
+            value => "/var/log/boot.log",
+        },
+# remote syslog
+#         remotesyslog => {
+#            key     => "*.*",
+#            value   => "@@remotelogserver.name",
+#         }
+    },
+    rulesets    => {
+        remotesyslog => {
+            parameters => {
+                'queue.type' => 'LinkedList',
+                'queue.spoolDirectory' => "/var/log/rsyslog/queue",
+                'queue.size' => 10000,
+                'queue.maxdiskspace' => '1000G',
+                'queue.timeoutqueue' => 3,
+                'queue.dequeuebatchsize' => 1000,
+                'action.resumeRetryCount' => 100,
+            },
+            rules      => [
+                action => {
+                    name    => 'test',
+                    facility => "*.*",
+                    config => {
+                        type    => 'omfwd',
+                        target  => 'remotelogserver.local',
+                        port    => 514,
+                        protocol => 'tcp',
+                    },
+                }
+            ],
+        }
+    }
+  }
