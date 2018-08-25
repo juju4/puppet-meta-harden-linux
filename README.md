@@ -38,6 +38,9 @@ $ librarian-puppet install --verbose
 $ puppet module list --tree --modulepath /path/to/modules
 ```
 
+* kitchen/docker execution:
+It is expected that some tasks will fail in docker context (sysctl, systemd daemons...). Full system (Bare, VM, LXD...) is required for full testing.
+
 ## License
 
 BSD 2-clause
