@@ -146,3 +146,8 @@
     timeout => 1800,
 #    onlyif => "/usr/bin/test `/bin/date +%d` -eq 06 && test `/bin/date +%H` -eq 11 || test -e /var/tmp/forceyum",
   }
+
+  file { '/etc/profile.d/security':
+    ensure => present,
+    source => 'file:///tmp/kitchen/files/profile.erb',
+  }
