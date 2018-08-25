@@ -1,5 +1,6 @@
 .vagrant
 *.retry
+*.old
 .tmp
 .librarian
 modules
