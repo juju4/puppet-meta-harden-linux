@@ -1,0 +1,32 @@
+---
+driver:
+  name: vagrant
+  provider: <%= ENV['KITCHEN_PROVIDER'] || 'virtualbox' %>
+
+transport:
+  name: sftp
+
+provisioner:
+  name: puppet_apply
+  manifests_path: manifests
+  modules_path: modules
+#  hiera_data_path: hieradata
+  puppet_debug: false
+  puppet_verbose: true
+#  require_chef_omnibus: false
+#  require_chef_for_busser: false
+  enable_yum_epel: true
+  ansible_connection: ssh
+
+verifier:
+  name: inspec
+
+platforms:
+  - name: ubuntu-18.04
+  - name: ubuntu-16.04
+  - name: centos-7
+
+suites:
+  - name: default
+    run_list:
+    attributes:
