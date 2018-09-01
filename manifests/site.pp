@@ -50,6 +50,11 @@
         ensure   => 'present',
       }
 
+      package { 'iptables-services':
+        provider => 'yum',
+        ensure   => 'present',
+      }
+
       if $pkgs_upgradeall {
         exec { "yum-update":
           command => "yum clean all; yum -q -y update --exclude cvs; rm -rf /var/tmp/forceyum",
@@ -80,7 +85,7 @@
         'sudo',
       ]
 
-      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod' ]
+      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables-persistent' ]
       $deb_packages.each |String $pkg| {
         package { "${pkg}":
           provider => 'apt',
