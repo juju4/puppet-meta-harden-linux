@@ -309,35 +309,35 @@ firewall { '006 Allow inbound SSH (v6)':
 firewall { '010 Allow icmp echo - IN':
   chain      => 'INPUT',
   proto      => icmp,
-  icmp_match => 8,
+  icmp       => 8,
   action     => accept,
   ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
 }
 firewall { '011 Allow icmp net unreachable- IN':
   chain      => 'INPUT',
   proto      => icmp,
-  icmp_match => 0,
+  icmp       => 0,
   action     => accept,
   ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
 }
 firewall { '012 Allow icmp echo - OUT':
   chain      => 'OUTPUT',
   proto      => icmp,
-  icmp_match => 8,
+  icmp       => 8,
   action     => accept,
   ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
 }
 firewall { '011 Allow icmp net unreachable - OUT':
   chain      => 'OUTPUT',
   proto      => icmp,
-  icmp_match => 0,
+  icmp       => 0,
   action     => accept,
   ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
 }
 firewall { '011 Allow icmp destination unreachable - OUT':
   chain      => 'OUTPUT',
   proto      => icmp,
-  icmp_match => 3,
+  icmp       => 3,
   action     => accept,
   ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
 }
