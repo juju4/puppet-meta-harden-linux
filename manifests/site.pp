@@ -251,3 +251,111 @@
       'ssh-dss AAAAB3Nza...== jeff@metamachine.net',
     ],
   }
+
+# Firewall
+class my_fw::pre {
+  Firewall {
+    require => undef,
+  }
+   # Default firewall rules
+  firewall { '000 accept all icmp':
+    proto  => 'icmp',
+    action => 'accept',
+  }->
+  firewall { '001 accept all to lo interface':
+    proto   => 'all',
+    iniface => 'lo',
+    action  => 'accept',
+  }->
+  firewall { '002 reject local traffic not on loopback interface':
+    iniface     => '! lo',
+    proto       => 'all',
+    destination => '127.0.0.1/8',
+    action      => 'reject',
+  }->
+  firewall { '003 accept related established rules':
+    proto  => 'all',
+    state  => ['RELATED', 'ESTABLISHED'],
+    action => 'accept',
+  }
+}
+
+class my_fw::post {
+  firewall { '999 drop all':
+    proto  => 'all',
+    action => 'drop',
+    before => undef,
+  }
+}
+
+resources { 'firewall':
+  purge => true,
+}
+
+firewall { '006 Allow inbound SSH (v4)':
+  chain      => 'INPUT',
+  dport    => 22,
+  proto    => tcp,
+  action   => accept,
+  provider => 'iptables',
+}
+firewall { '006 Allow inbound SSH (v6)':
+  chain      => 'INPUT',
+  dport    => 22,
+  proto    => tcp,
+  action   => accept,
+  provider => 'ip6tables',
+}
+firewall { '010 Allow icmp echo - IN':
+  chain      => 'INPUT',
+  proto      => icmp,
+  icmp_match => 8,
+  action     => accept,
+  ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
+}
+firewall { '011 Allow icmp net unreachable- IN':
+  chain      => 'INPUT',
+  proto      => icmp,
+  icmp_match => 0,
+  action     => accept,
+  ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
+}
+firewall { '012 Allow icmp echo - OUT':
+  chain      => 'OUTPUT',
+  proto      => icmp,
+  icmp_match => 8,
+  action     => accept,
+  ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
+}
+firewall { '011 Allow icmp net unreachable - OUT':
+  chain      => 'OUTPUT',
+  proto      => icmp,
+  icmp_match => 0,
+  action     => accept,
+  ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
+}
+firewall { '011 Allow icmp destination unreachable - OUT':
+  chain      => 'OUTPUT',
+  proto      => icmp,
+  icmp_match => 3,
+  action     => accept,
+  ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
+}
+firewall { '100 allow dns access - OUT':
+  chain  => 'OUTPUT',
+  dport  => 53,
+  proto  => [tcp, udp],
+  action => accept,
+}
+firewall { '101 allow ntp access - OUT':
+  chain  => 'OUTPUT',
+  dport  => 123,
+  proto  => udp,
+  action => accept,
+}
+firewall { '110 allow http and https access - OUT':
+  chain  => 'OUTPUT',
+  dport  => [80, 443],
+  proto  => tcp,
+  action => accept,
+}
