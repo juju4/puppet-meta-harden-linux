@@ -250,8 +250,8 @@
       export HISTFILESIZE=5000
       export HISTIGNORE=
       export HISTSIZE=3000
-      export HISTTIMEFORMAT="%a %b %Y %T %z "
-      if [ "X$SHELL" = '/bin/bash' ]; then
+      export HISTTIMEFORMAT=\"%a %b %Y %T %z \"
+      if [ \"X$SHELL\" = '/bin/bash' ]; then
         typeset -r HISTCONTROL
         typeset -r HISTFILE
         typeset -r HISTFILESIZE
