@@ -1,0 +1,77 @@
+---
+sudo: required
+
+env:
+#  - distribution: centos
+#    version: 6
+#    init: /sbin/init
+#    run_opts: ""
+  - distribution: centos
+#    version: 7
+    init: /usr/lib/systemd/systemd
+    run_opts: "'--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro'"
+    suite: default
+  - distribution: ubuntu
+#    version: 18.04
+    init: /lib/systemd/systemd
+    run_opts: "'--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro'"
+    suite: default
+#  - distribution: ubuntu
+#    version: 16.04
+#    init: /lib/systemd/systemd
+#    run_opts: "'--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro'"
+#    suite: default
+  - distribution: alpine
+#    version: 3.8
+    init: /sbin/init
+    run_opts: ""
+    suite: default
+  - distribution: debian
+#    version: 9
+    init: /lib/systemd/systemd
+    run_opts: "'--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro'"
+    suite: default
+
+services:
+  - docker
+
+before_install:
+  # - sudo apt-get update
+  # Pull container
+  - 'sudo docker pull ${distribution}:${version}'
+  - env
+  - pwd
+  - find -ls
+  - "[ -f get-puppetmodules.sh ] && sh -x get-puppetmodules.sh"
+
+before_script:
+  - container_id=$(mktemp)
+    # Run container in detached state
+## Note: mapping urandom/random to have better entropy. Normally, have rng-tools or haveged to handle that but not running inside docker images we have
+  - 'sudo docker run --detach -v /dev/urandom:/dev/random --volume="${PWD}:/etc/puppetlabs/code/environments/production/manifests:ro" --volume="${PWD}/modules":/etc/puppetlabs/code/modules:ro ${run_opts} puppet/puppet-agent-${distribution}:latest "${init}" > "${container_id}"'
+
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet --version'
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet config print config'
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet config print modulepath'
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet module list --tree'
+
+script:
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet apply --modulepath='/etc/puppetlabs/code/environments/production/modules;/etc/puppetlabs/code/modules;/etc/puppetlabs/puppet/modules' /etc/puppetlabs/code/environments/production/manifests/site.pp --disable_warnings deprecations --verbose'
+
+after_failure:
+  # Check what happened on systemd systems.
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm systemctl -l --no-pager status'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm journalctl -xe --no-pager'
+
+after_script:
+  # Clean up
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm iptables -L -vn'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm iptables-save'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ip6tables -L -vn'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ip6tables-save'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ls -lR /var/lib/ntp /var/ntp/drift /var/lib/openntpd'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm cat /tmp/inspec*.log'
+  - 'sudo docker stop "$(cat ${container_id})"'
+
+notifications:
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/
