@@ -1,77 +1,50 @@
 ---
+dist: trusty
 sudo: required
+rvm:
+  - 2.5
 
 env:
 #  - distribution: centos
 #    version: 6
-#    init: /sbin/init
-#    run_opts: ""
   - distribution: centos
-#    version: 7
-    init: /usr/lib/systemd/systemd
-    run_opts: "'--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro'"
-    suite: default
+    version: 7
   - distribution: ubuntu
-#    version: 18.04
-    init: /lib/systemd/systemd
-    run_opts: "'--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro'"
-    suite: default
+    version: 18.04
+  - distribution: ubuntu
+    version: 16.04
 #  - distribution: ubuntu
-#    version: 16.04
-#    init: /lib/systemd/systemd
-#    run_opts: "'--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro'"
-#    suite: default
-  - distribution: alpine
-#    version: 3.8
-    init: /sbin/init
-    run_opts: ""
-    suite: default
-  - distribution: debian
-#    version: 9
-    init: /lib/systemd/systemd
-    run_opts: "'--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro'"
-    suite: default
-
-services:
-  - docker
+#    version: 14.04
+#  - distribution: ubuntu
+#    version: 12.04
+#  - distribution: alpine
+#    version: 3.4
 
 before_install:
-  # - sudo apt-get update
-  # Pull container
-  - 'docker pull puppet/puppet-agent-${distribution}:latest'
   - env
   - pwd
   - find -ls
-  - "[ -f get-puppetmodules.sh ] && sh -x get-puppetmodules.sh"
 
-before_script:
-  - container_id=$(mktemp)
-    # Run container in detached state
-## Note: mapping urandom/random to have better entropy. Normally, have rng-tools or haveged to handle that but not running inside docker images we have
-  - 'docker run --detach -v /dev/urandom:/dev/random --volume="${PWD}:/etc/puppetlabs/code/environments/production/manifests:ro" --volume="${PWD}/modules":/etc/puppetlabs/code/modules:ro ${run_opts} puppet/puppet-agent-${distribution}:latest "${init}" > "${container_id}"'
-
-#  - 'docker exec --tty "$(cat ${container_id})" puppet --version'
-  - 'docker exec --tty "$(cat ${container_id})" puppet config print config'
-  - 'docker exec --tty "$(cat ${container_id})" puppet config print modulepath'
-  - 'docker exec --tty "$(cat ${container_id})" puppet module list --tree'
+  - gem install test-kitchen
+  - gem install kitchen-puppet
+  - gem install librarian-puppet
+  - gem install kitchen-inspec
+  - gem install kitchen-sync
+  - gem install kitchen-docker
+  - gem list
+  - which kitchen
+  - env KITCHEN_LOCAL_YAML=.kitchen.docker.yml kitchen diagnose --all
 
 script:
-  - 'docker exec --tty "$(cat ${container_id})" puppet apply --modulepath="/etc/puppetlabs/code/environments/production/modules;/etc/puppetlabs/code/modules;/etc/puppetlabs/puppet/modules" /etc/puppetlabs/code/environments/production/manifests/site.pp --disable_warnings deprecations --verbose'
+  - env KITCHEN_LOCAL_YAML=.kitchen.docker.yml kitchen verify default-${distribution}-${version//./} -l debug
 
 after_failure:
-  # Check what happened on systemd systems.
-  - 'docker exec --tty "$(cat ${container_id})" systemctl -l --no-pager status'
-  - 'docker exec --tty "$(cat ${container_id})" journalctl -xe --no-pager'
+# https://github.com/inspec/kitchen-inspec/issues/142
+  - ssh-add -l
 
 after_script:
   # Clean up
-  - 'docker exec --tty "$(cat ${container_id})" iptables -L -vn'
-  - 'docker exec --tty "$(cat ${container_id})" iptables-save'
-  - 'docker exec --tty "$(cat ${container_id})" ip6tables -L -vn'
-  - 'docker exec --tty "$(cat ${container_id})" ip6tables-save'
-  - 'docker exec --tty "$(cat ${container_id})" ls -lR /var/lib/ntp /var/ntp/drift /var/lib/openntpd'
-  - 'docker exec --tty "$(cat ${container_id})" cat /tmp/inspec*.log'
-  - 'docker stop "$(cat ${container_id})"'
+  - env KITCHEN_LOCAL_YAML=.kitchen.docker.yml kitchen destroy default-${distribution}-${version//./}
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
