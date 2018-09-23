@@ -50,7 +50,7 @@ before_script:
 ## Note: mapping urandom/random to have better entropy. Normally, have rng-tools or haveged to handle that but not running inside docker images we have
   - 'docker run --detach -v /dev/urandom:/dev/random --volume="${PWD}:/etc/puppetlabs/code/environments/production/manifests:ro" --volume="${PWD}/modules":/etc/puppetlabs/code/modules:ro ${run_opts} puppet/puppet-agent-${distribution}:latest "${init}" > "${container_id}"'
 
-  - 'docker exec --tty "$(cat ${container_id})" puppet --version'
+#  - 'docker exec --tty "$(cat ${container_id})" puppet --version'
   - 'docker exec --tty "$(cat ${container_id})" puppet config print config'
   - 'docker exec --tty "$(cat ${container_id})" puppet config print modulepath'
   - 'docker exec --tty "$(cat ${container_id})" puppet module list --tree'
