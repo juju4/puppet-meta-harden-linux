@@ -287,9 +287,9 @@
     path => '/etc/bashrc',
     line => 'export HISTFILESIZE=5000',
   }
-  file_line { 'bashrc-HISTCONTROL-r':
+  file_line { 'bashrc-HISTFILESIZE-r':
     path => '/etc/bashrc',
-    line => 'typeset -r HISTCONTROL',
+    line => 'typeset -r HISTFILESIZE',
   }
   file_line { 'bashrc-HISTIGNORE':
     path => '/etc/bashrc',
