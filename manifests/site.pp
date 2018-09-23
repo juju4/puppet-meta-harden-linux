@@ -266,58 +266,72 @@
   file_line { 'bashrc-TMOUT':
     path => '/etc/bashrc',
     line => 'readonly TMOUT=3600',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
   file_line { 'bashrc-HISTCONTROL':
     path => '/etc/bashrc',
     line => 'export HISTCONTROL=',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
   file_line { 'bashrc-HISTCONTROL-r':
     path => '/etc/bashrc',
     line => 'typeset -r HISTCONTROL',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
   file_line { 'bashrc-HISTFILE':
     path => '/etc/bashrc',
     line => 'export HISTFILE=$HOME/.bash_history',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
   file_line { 'bashrc-HISTFILE-r':
     path => '/etc/bashrc',
     line => 'typeset -r HISTFILE',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
   file_line { 'bashrc-HISTFILESIZE':
     path => '/etc/bashrc',
     line => 'export HISTFILESIZE=5000',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
   file_line { 'bashrc-HISTFILESIZE-r':
     path => '/etc/bashrc',
     line => 'typeset -r HISTFILESIZE',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
   file_line { 'bashrc-HISTIGNORE':
     path => '/etc/bashrc',
     line => 'export HISTIGNORE=',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
   file_line { 'bashrc-HISTIGNORE-r':
     path => '/etc/bashrc',
     line => 'typeset -r HISTIGNORE',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
   file_line { 'bashrc-HISTSIZE':
     path => '/etc/bashrc',
     line => 'export HISTSIZE=3000',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
   file_line { 'bashrc-HISTSIZE-r':
     path => '/etc/bashrc',
     line => 'typeset -r HISTSIZE',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
   file_line { 'bashrc-HISTTIMEFORMAT':
     path => '/etc/bashrc',
     line => 'export HISTTIMEFORMAT="%a %b %Y %T %z "',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
   file_line { 'bashrc-HISTTIMEFORMAT-r':
     path => '/etc/bashrc',
     line => 'typeset -r HISTTIMEFORMAT',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
   file_line { 'bashrc-PS1':
     path => '/etc/bashrc',
     line => 'export PS1="[\A] \u@\h {\W}\\$ "',
+    onlyif => '/usr/bin/test -e /etc/bashrc',
   }
 
   accounts::user { 'jeff':
