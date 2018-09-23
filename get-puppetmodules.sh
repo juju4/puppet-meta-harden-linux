@@ -42,3 +42,9 @@ m=modules
 [ ! -d $m/eyplib ] && git clone https://github.com/NTTCom-MS/eyp-eyplib.git $m/eyplib
 [ ! -d $m/dovecot ] && git clone https://github.com/NTTCom-MS/eyp-dovecot.git $m/dovecot
 [ ! -d $m/smarthost ] && git clone https://github.com/justinjl6/puppet-smarthost.git $m/smarthost
+
+# tomcat setup
+[ ! -d $m/archive ] && git clone https://github.com/voxpupuli/puppet-archive.git $m/archive
+[ ! -d $m/java ] && git clone https://github.com/puppetlabs/puppetlabs-java.git $m/java
+[ ! -d $m/tomcat ] && git clone https://github.com/puppetlabs/puppetlabs-tomcat.git $m/tomcat
+[ ! -d $m/apache ] && git clone https://github.com/puppetlabs/puppetlabs-apache.git $m/apache

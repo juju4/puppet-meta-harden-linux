@@ -2,6 +2,7 @@
 [![Build Status - Devel](https://travis-ci.org/juju4/puppet-meta-harden-linux.svg?branch=devel)](https://travis-ci.org/juju4/puppet-meta-harden-linux/branches)
 
 # puppet meta harden linux
+(tomcat+apache reverse proxy example)
 
 ## Module Description
 This module uses a compilation of other modules to do hardening of linux system.

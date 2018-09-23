@@ -8,6 +8,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "centos/7"
   #hardenwin.vm.network "private_network", ip: "192.168.50.100"
 
+  config.vm.network "forwarded_port", guest: 80, host: 7080
+  config.vm.network "forwarded_port", guest: 443, host: 7443
+
   # use hostname based on host
   config.vm.hostname = "#{`hostname`[0..-2]}".sub(/\..*$/,'')+"-pharden-vagrant"
 
@@ -16,6 +19,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # modules fetched from vagrant host
   config.vm.provision "shell", inline: "puppet module list --tree"
   config.vm.provision "shell", inline: "puppet module list --tree --modulepath /vagrant/modules"
+
+  config.vm.provision :puppet do |puppet|
+    puppet.manifest_file  = "tomcat.pp"
+    puppet.manifests_path  = "manifests"
+    puppet.module_path = "modules"
+    puppet.options = "--verbose"
+    puppet.facter = { 'fqdn'  => config.vm.hostname }
+  end
 
   config.vm.provision :puppet do |puppet|
     puppet.manifest_file  = "site.pp"

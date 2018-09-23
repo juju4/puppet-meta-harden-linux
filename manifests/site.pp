@@ -404,3 +404,31 @@ firewall { '110 allow http and https access - OUT':
   proto  => tcp,
   action => accept,
 }
+
+## tomcat
+firewall { '051 Allow http traffic - IN':
+  chain      => 'INPUT',
+  dport    => 80,
+  proto    => tcp,
+# TODO: safety-net, default only allow LAN access. Customize to your context
+  source => [
+    '10.0.0.0/8',
+    '172.16.0.0/12',
+    '192.168.0.0/16',
+  ],
+  action   => accept,
+  provider => 'iptables',
+}
+firewall { '052 Allow https traffic - IN':
+  chain      => 'INPUT',
+  dport    => 443,
+  proto    => tcp,
+# TODO: safety-net, default only allow LAN access. Customize to your context
+  source => [
+    '10.0.0.0/8',
+    '172.16.0.0/12',
+    '192.168.0.0/16',
+  ],
+  action   => accept,
+  provider => 'iptables',
+}
