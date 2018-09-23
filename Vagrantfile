@@ -6,12 +6,10 @@ ENV['VAGRANT_DEFAULT_PROVIDER'] = 'virtualbox'
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "centos/7"
-  config.vm.hostname = "pharden"
   #hardenwin.vm.network "private_network", ip: "192.168.50.100"
 
-  config.vm.define "pharden" do |cfg|
-    cfg.vm.hostname = "pharden"
-  end
+  # use hostname based on host
+  config.vm.hostname = "#{`hostname`[0..-2]}".sub(/\..*$/,'')+"-pharden-vagrant"
 
   config.vm.provision "shell", inline: "rpm -Uvh https://yum.puppet.com/puppet5/puppet5-release-el-7.noarch.rpm || true"
   config.vm.provision "shell", inline: "yum install -y puppet-agent"
