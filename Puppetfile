@@ -23,3 +23,9 @@ mod 'itmanagerro-rkhunter'
 #mod 'ouroboros8-telegraf'
 #mod 'eyp-postfix'
 mod 'justinjl-smarthost'
+
+# tomcat
+mod 'puppet-archive'
+mod 'puppetlabs-java'
+mod 'puppetlabs-tomcat'
+mod 'puppetlabs-apache'
