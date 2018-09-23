@@ -44,15 +44,17 @@
         'wheel',
       ]
 
-      # required for /etc/modprobe.d
-      package { 'kmod':
-        provider => 'yum',
-        ensure   => 'present',
+      # kmod required for /etc/modprobe.d
+      $rpm_packages = ['kmod', 'iptables-services', 'perf' ]
+      $rpm_packages.each |String $pkg| {
+        package { "${pkg}":
+          provider => 'yum',
+          ensure   => 'present',
+        }
       }
 
-      package { 'iptables-services':
-        provider => 'yum',
-        ensure   => 'present',
+      package { 'rpcbind':
+        ensure   => 'absent',
       }
 
       if $pkgs_upgradeall {
@@ -106,6 +108,11 @@
 #    default:             { include role::generic } # Apply the generic class
   }
 
+  # no user option for puppetlabs/ntp
+  include ntp
+  class { 'fail2ban': }
+  class { 'osquery': }
+
   class { 'os_hardening': }
 
   class { 'ssh_hardening::server':
@@ -137,11 +144,6 @@
 #    class { '::cisecurity': }
 
 #  include ::auditd
-
-  # no user option for puppetlabs/ntp
-  include ntp
-  class { 'fail2ban': }
-  class { 'osquery': }
 
   # FIXME! missing ActionResumeRetryCount, ActionQueueTimeoutEnqueue, ActionQueueSaveOnShutdown
   class { 'rsyslog::server':
@@ -245,6 +247,7 @@
     ensure => present,
     #source => 'file:///tmp/kitchen/files/profile.erb',
     content => "### PUPPET MANAGED BLOCK: bash settings ###
+      readonly TMOUT=3600
       export HISTCONTROL=
       export HISTFILE=\$HOME/.bash_history
       export HISTFILESIZE=5000
@@ -259,6 +262,62 @@
         typeset -r HISTSIZE
         typeset -r HISTTIMEFORMAT
       fi",
+  }
+  file_line { 'bashrc-TMOUT':
+    path => '/etc/bashrc',
+    line => 'readonly TMOUT=3600',
+  }
+  file_line { 'bashrc-HISTCONTROL':
+    path => '/etc/bashrc',
+    line => 'export HISTCONTROL=',
+  }
+  file_line { 'bashrc-HISTCONTROL-r':
+    path => '/etc/bashrc',
+    line => 'typeset -r HISTCONTROL',
+  }
+  file_line { 'bashrc-HISTFILE':
+    path => '/etc/bashrc',
+    line => 'export HISTFILE=$HOME/.bash_history',
+  }
+  file_line { 'bashrc-HISTFILE-r':
+    path => '/etc/bashrc',
+    line => 'typeset -r HISTFILE',
+  }
+  file_line { 'bashrc-HISTFILESIZE':
+    path => '/etc/bashrc',
+    line => 'export HISTFILESIZE=5000',
+  }
+  file_line { 'bashrc-HISTCONTROL-r':
+    path => '/etc/bashrc',
+    line => 'typeset -r HISTCONTROL',
+  }
+  file_line { 'bashrc-HISTIGNORE':
+    path => '/etc/bashrc',
+    line => 'export HISTIGNORE=',
+  }
+  file_line { 'bashrc-HISTIGNORE-r':
+    path => '/etc/bashrc',
+    line => 'typeset -r HISTIGNORE',
+  }
+  file_line { 'bashrc-HISTSIZE':
+    path => '/etc/bashrc',
+    line => 'export HISTSIZE=3000',
+  }
+  file_line { 'bashrc-HISTSIZE-r':
+    path => '/etc/bashrc',
+    line => 'typeset -r HISTSIZE',
+  }
+  file_line { 'bashrc-HISTTIMEFORMAT':
+    path => '/etc/bashrc',
+    line => 'export HISTTIMEFORMAT="%a %b %Y %T %z "',
+  }
+  file_line { 'bashrc-HISTTIMEFORMAT-r':
+    path => '/etc/bashrc',
+    line => 'typeset -r HISTTIMEFORMAT',
+  }
+  file_line { 'bashrc-PS1':
+    path => '/etc/bashrc',
+    line => 'export PS1="[\A] \u@\h {\W}\\$ "',
   }
 
   accounts::user { 'jeff':
@@ -316,6 +375,11 @@ firewall { '006 Allow inbound SSH (v4)':
   chain      => 'INPUT',
   dport    => 22,
   proto    => tcp,
+  source => [
+    '10.0.0.0/8',
+    '172.16.0.0/12',
+    '192.168.0.0/16',
+  ],
   action   => accept,
   provider => 'iptables',
 }
