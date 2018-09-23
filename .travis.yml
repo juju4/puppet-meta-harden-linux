@@ -50,18 +50,18 @@ before_script:
 ## Note: mapping urandom/random to have better entropy. Normally, have rng-tools or haveged to handle that but not running inside docker images we have
   - 'sudo docker run --detach -v /dev/urandom:/dev/random --volume="${PWD}:/etc/puppetlabs/code/environments/production/manifests:ro" --volume="${PWD}/modules":/etc/puppetlabs/code/modules:ro ${run_opts} puppet/puppet-agent-${distribution}:latest "${init}" > "${container_id}"'
 
-  - 'sudo docker exec --tty "$(cat ${container_id})" --version'
-  - 'sudo docker exec --tty "$(cat ${container_id})" config print config'
-  - 'sudo docker exec --tty "$(cat ${container_id})" config print modulepath'
-  - 'sudo docker exec --tty "$(cat ${container_id})" module list --tree'
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet --version'
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet config print config'
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet config print modulepath'
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet module list --tree'
 
 script:
-  - 'sudo docker exec --tty "$(cat ${container_id})" apply --modulepath="/etc/puppetlabs/code/environments/production/modules;/etc/puppetlabs/code/modules;/etc/puppetlabs/puppet/modules" /etc/puppetlabs/code/environments/production/manifests/site.pp --disable_warnings deprecations --verbose'
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet apply --modulepath="/etc/puppetlabs/code/environments/production/modules;/etc/puppetlabs/code/modules;/etc/puppetlabs/puppet/modules" /etc/puppetlabs/code/environments/production/manifests/site.pp --disable_warnings deprecations --verbose'
 
 after_failure:
   # Check what happened on systemd systems.
-  - 'docker exec --tty "$(cat ${container_id})" --entrypoint /bin/systemctl -l --no-pager status'
-  - 'docker exec --tty "$(cat ${container_id})" --entrypoint /bin/journalctl -xe --no-pager'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm systemctl -l --no-pager status'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm journalctl -xe --no-pager'
 
 after_script:
   # Clean up
