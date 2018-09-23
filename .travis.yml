@@ -56,7 +56,7 @@ before_script:
   - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet module list --tree'
 
 script:
-  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet apply --modulepath='/etc/puppetlabs/code/environments/production/modules;/etc/puppetlabs/code/modules;/etc/puppetlabs/puppet/modules' /etc/puppetlabs/code/environments/production/manifests/site.pp --disable_warnings deprecations --verbose'
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet apply --modulepath="/etc/puppetlabs/code/environments/production/modules;/etc/puppetlabs/code/modules;/etc/puppetlabs/puppet/modules" /etc/puppetlabs/code/environments/production/manifests/site.pp --disable_warnings deprecations --verbose'
 
 after_failure:
   # Check what happened on systemd systems.
