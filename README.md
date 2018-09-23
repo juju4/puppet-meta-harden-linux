@@ -7,6 +7,8 @@
 This module uses a compilation of other modules to do hardening of linux system.
 You are advised to use network shares to store files.
 
+It's an example implementation. There are probably many more ways to do it in a cleaner, faster or whatever way. Adapt to your context!
+
 ### Operating systems
 
 This module is targeted for linux.
