@@ -38,7 +38,7 @@ services:
 before_install:
   # - sudo apt-get update
   # Pull container
-  - 'sudo docker pull ${distribution}:${version}'
+  - 'sudo docker pull puppet/puppet-agent-${distribution}:latest'
   - env
   - pwd
   - find -ls
