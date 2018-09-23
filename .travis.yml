@@ -1,83 +1,77 @@
 ---
-dist: trusty
 sudo: required
-rvm:
-  - 2.5
 
 env:
-## those images need pre-configuration before being usable (openssh...)
 #  - distribution: centos
 #    version: 6
+#    init: /sbin/init
+#    run_opts: ""
   - distribution: centos
-    version: 7
+#    version: 7
+    init: /usr/lib/systemd/systemd
+    run_opts: "'--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro'"
+    suite: default
   - distribution: ubuntu
-    version: 18.04
-  - distribution: ubuntu
-    version: 16.04
+#    version: 18.04
+    init: /lib/systemd/systemd
+    run_opts: "'--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro'"
+    suite: default
 #  - distribution: ubuntu
-#    version: 14.04
-#  - distribution: ubuntu
-#    version: 12.04
-#  - distribution: alpine
-#    version: 3.4
+#    version: 16.04
+#    init: /lib/systemd/systemd
+#    run_opts: "'--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro'"
+#    suite: default
+  - distribution: alpine
+#    version: 3.8
+    init: /sbin/init
+    run_opts: ""
+    suite: default
+  - distribution: debian
+#    version: 9
+    init: /lib/systemd/systemd
+    run_opts: "'--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro'"
+    suite: default
+
+services:
+  - docker
 
 before_install:
+  # - sudo apt-get update
+  # Pull container
+  - 'sudo docker pull ${distribution}:${version}'
   - env
   - pwd
   - find -ls
-## use appropriate role path and not github name
-#  - "[ -f get-dependencies.sh ] && sh -x get-dependencies.sh"
-## No Xenial, https://github.com/travis-ci/travis-ci/issues/5821
-#  - sudo apt install lxd
-  - echo "deb http://archive.ubuntu.com/ubuntu trusty-backports main restricted universe multiverse" | sudo tee /etc/apt/sources.list.d/trusty-backports.list
-  - sudo apt-get update -qq
-  - sudo apt -t trusty-backports -y install lxd acl -q
-## change of group implies logout+login to apply... can't do with travis = run as root (sic)
-## https://github.com/travis-ci/travis-ci/issues/1839   or chain: sudo -E su $USER -c "..."
-  - sudo usermod -G lxd travis
-  # Pull container
-#  - lxc remote add images images.linuxcontainers.org
-  - sudo -E su $USER -c "lxc remote list"
-  - sudo -E su $USER -c "lxc image list"
-## pre-download base images
-  - 'sudo -E su $USER -c "[ ${distribution} == ubuntu ] || lxc image copy images:${distribution}/${version}/amd64 local: --alias=${distribution}-${version}-nossh"'
-  - 'sudo -E su $USER -c "[ ${distribution} == ubuntu ] && lxc image copy ubuntu:${version} local: --alias=${distribution}-${version}" || true'
-## configure lxd-bridge
-  - sudo perl -pi -e 's@^LXD_IPV4_ADDR=""@LXD_IPV4_ADDR="10.252.116.1"@;s@^LXD_IPV4_NETMASK=""@LXD_IPV4_NETMASK="255.255.255.0"@;s@^LXD_IPV4_NETWORK=""@LXD_IPV4_NETWORK="10.252.116.1/24"@;s@^LXD_IPV4_DHCP_RANGE=""@LXD_IPV4_DHCP_RANGE="10.252.116.2,10.252.116.254"@;s@^LXD_IPV4_DHCP_MAX=""@LXD_IPV4_DHCP_MAX="252"@;s@LXD_IPV6_PROXY="true"@LXD_IPV6_PROXY="false"@' /etc/default/lxd-bridge
-#  - cat /etc/default/lxd-bridge
-#  - service --status-all
-  - sudo service lxd restart
+  - "[ -f get-puppetmodules.sh ] && sh -x get-puppetmodules.sh"
 
-  - gem install test-kitchen
-  - gem install kitchen-puppet
-  - gem install librarian-puppet
-  - gem install kitchen-inspec
-  - gem install kitchen-sync
-  - gem install kitchen-lxd_cli
-  - gem list
-  - which kitchen
-## ssh key for lxd_cli ?
-  - ls ~/.ssh
-  - ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -P ""
-  - ssh-agent
-## sudo/su get us a non-usual PATH ...
-  - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "sh -x ./test/lxd/centos-ssh-image.sh" || true'
-  - sudo -E su $USER -c "env"
-## The command "sudo -E su $USER -c "which kitchen"" failed and exited with 1 during .
-#  - sudo -E su $USER -c "which kitchen"
-  - sudo -E su $USER -c "env PATH=$PATH kitchen diagnose --all"
+before_script:
+  - container_id=$(mktemp)
+    # Run container in detached state
+## Note: mapping urandom/random to have better entropy. Normally, have rng-tools or haveged to handle that but not running inside docker images we have
+  - 'sudo docker run --detach -v /dev/urandom:/dev/random --volume="${PWD}:/etc/puppetlabs/code/environments/production/manifests:ro" --volume="${PWD}/modules":/etc/puppetlabs/code/modules:ro ${run_opts} puppet/puppet-agent-${distribution}:latest "${init}" > "${container_id}"'
+
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet --version'
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet config print config'
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet config print modulepath'
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet module list --tree'
 
 script:
-#  - KITCHEN_LOCAL_YAML=.kitchen.local.yml bundle exec kitchen verify ${INSTANCE}
-  - sudo -E su $USER -c "env PATH=$PATH kitchen verify default-${distribution}-${version//./} -l debug"
+  - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm puppet apply --modulepath='/etc/puppetlabs/code/environments/production/modules;/etc/puppetlabs/code/modules;/etc/puppetlabs/puppet/modules' /etc/puppetlabs/code/environments/production/manifests/site.pp --disable_warnings deprecations --verbose'
 
 after_failure:
-# https://github.com/inspec/kitchen-inspec/issues/142
-  - sudo -E su $USER -c "ssh-add -l"
+  # Check what happened on systemd systems.
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm systemctl -l --no-pager status'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm journalctl -xe --no-pager'
 
 after_script:
   # Clean up
-  - sudo -E su $USER -c "env PATH=$PATH kitchen destroy default-${distribution}-${version//./}"
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm iptables -L -vn'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm iptables-save'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ip6tables -L -vn'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ip6tables-save'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm ls -lR /var/lib/ntp /var/ntp/drift /var/lib/openntpd'
+  - 'docker exec --tty "$(cat ${container_id})" env TERM=xterm cat /tmp/inspec*.log'
+  - 'sudo docker stop "$(cat ${container_id})"'
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
