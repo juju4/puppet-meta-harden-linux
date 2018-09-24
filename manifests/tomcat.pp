@@ -2,12 +2,12 @@
 class { 'java': }
 
 tomcat::install { '/opt/tomcat9':
-  source_url => 'https://www.apache.org/dist/tomcat/tomcat-9/v9.0.12/bin/apache-tomcat-9.0.12.tar.gz'
-  requires      => Class['java'],
+  source_url => 'https://www.apache.org/dist/tomcat/tomcat-9/v9.0.12/bin/apache-tomcat-9.0.12.tar.gz',
+  require    => Class['java'],
 }
 tomcat::instance { 'default':
   catalina_home => '/opt/tomcat9',
-  requires      => Class['tomcat'],
+  require       => Class['tomcat'],
 }
 # https://tomcat.apache.org/tomcat-9.0-doc/security-howto.html
 tomcat::config::server::connector { 'tomcat9-signature':
@@ -17,25 +17,26 @@ tomcat::config::server::connector { 'tomcat9-signature':
   additional_attributes => {
     'server' => 'Apache Tomcat'
   },
-  requires              => Class['tomcat'],
+  require               => Class['tomcat'],
 }
-#file { [ "/opt/tomcat9/lib", "/opt/tomcat9/lib/org", "/opt/tomcat9/lib/org/apache", "/opt/tomcat9/lib/org/apache/catalina", "/opt/tomcat9/lib/org/apache/catalina/util" ]:
-#  ensure => directory,
-#  mode   => '0755',
-## tomcat install will fail because existing files during tomcat tar extract without below lines
-## FIXME! not enough
-#  requires => [
-#    Class['tomcat'],
-#    ]
-#}
-#file { "/opt/tomcat9/lib/org/apache/catalina/util/ServerInfo.properties":
-#  ensure => present,
-#  content => "server.info=Apache Tomcat Version X",
-#  requires => [
-#    Class['tomcat'],
-#    File['/opt/tomcat9/lib/org/apache/catalina/util'],
-#    ]
-#}
+file { [ "/opt/tomcat9/lib", "/opt/tomcat9/lib/org", "/opt/tomcat9/lib/org/apache", "/opt/tomcat9/lib/org/apache/catalina", "/opt/tomcat9/lib/org/apache/catalina/util" ]:
+  ensure => directory,
+  mode   => '0755',
+  owner  => 'tomcat',
+  group  => 'tomcat',
+  require => Class['tomcat'],
+}
+file { "/opt/tomcat9/lib/org/apache/catalina/util/ServerInfo.properties":
+  ensure => present,
+  content => "server.info=Apache Tomcat Version X",
+  mode   => '0644',
+  owner  => 'tomcat',
+  group  => 'tomcat',
+  require => [
+    Class['tomcat'],
+    File['/opt/tomcat9/lib/org/apache/catalina/util'],
+    ]
+}
 
 package { 'policycoreutils-python':
   ensure => installed,
