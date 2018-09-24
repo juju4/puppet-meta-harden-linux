@@ -54,8 +54,12 @@
         }
       }
 
-      package { 'rpcbind':
-        ensure   => 'absent',
+      $rpm_remove = ['quota', 'nfs-utils', 'rpcbind' ]
+      $rpm_remove.each |String $pkg| {
+        package { "${pkg}":
+          provider => 'yum',
+          ensure   => 'present',
+        }
       }
 
       if $pkgs_upgradeall {
