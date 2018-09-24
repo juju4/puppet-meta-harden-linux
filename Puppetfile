@@ -25,7 +25,7 @@ mod 'itmanagerro-rkhunter'
 mod 'justinjl-smarthost'
 
 # tomcat
-mod 'puppet-archive'
+mod 'puppet-archive', '2.3.0'
 mod 'puppetlabs-java'
 mod 'puppetlabs-tomcat'
 mod 'puppetlabs-apache'
