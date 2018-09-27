@@ -114,6 +114,11 @@
 #    default:             { include role::generic } # Apply the generic class
   }
 
+  class { ‘::resolvconf’:
+    nameservers => [‘8.8.8.8’, ‘8.8.4.4’],
+    domains     => [‘domain.tld’, ‘sub.domain.tld’],
+  }
+
   # no user option for puppetlabs/ntp
   include ntp
   class { 'fail2ban': }
