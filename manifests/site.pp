@@ -46,7 +46,7 @@
       ]
 
       # kmod required for /etc/modprobe.d
-      $rpm_packages = ['kmod', 'iptables-services', 'perf' ]
+      $rpm_packages = ['kmod', 'iptables-services', 'perf', 'openscap-scanner', 'scap-security-guide' ]
       $rpm_packages.each |String $pkg| {
         package { "${pkg}":
           provider => 'yum',
@@ -93,7 +93,7 @@
         'sudo',
       ]
 
-      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables-persistent' ]
+      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables-persistent', 'libopenscap8' ]
       $deb_packages.each |String $pkg| {
         package { "${pkg}":
           provider => 'apt',
@@ -114,8 +114,23 @@
 #    default:             { include role::generic } # Apply the generic class
   }
 
+  class { ‘::resolvconf’:
+    nameservers => [‘8.8.8.8’, ‘8.8.4.4’],
+    domains     => [‘domain.tld’, ‘sub.domain.tld’],
+  }
+
   # no user option for puppetlabs/ntp
   include ntp
+  class { 'ntp':
+    servers   => ['pool.ntp.org'],
+    restrict  => [
+      'default ignore',
+      '-6 default ignore',
+      '127.0.0.1',
+      '-6 ::1',
+      'pool.ntp.org nomodify notrap nopeer noquery',
+    ],
+  }
   class { 'fail2ban': }
   class { 'osquery': }
 
