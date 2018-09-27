@@ -59,6 +59,7 @@ exec { 'self_signed_certificate':
 
 class { 'apache':
   default_vhost => false,
+  manage_user => false,
 }
 
 class { 'apache::mod::security': }
