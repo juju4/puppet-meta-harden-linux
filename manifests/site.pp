@@ -121,6 +121,16 @@
 
   # no user option for puppetlabs/ntp
   include ntp
+  class { 'ntp':
+    servers   => ['pool.ntp.org'],
+    restrict  => [
+      'default ignore',
+      '-6 default ignore',
+      '127.0.0.1',
+      '-6 ::1',
+      'pool.ntp.org nomodify notrap nopeer noquery',
+    ],
+  }
   class { 'fail2ban': }
   class { 'osquery': }
 
