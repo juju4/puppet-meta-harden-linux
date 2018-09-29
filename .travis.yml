@@ -10,33 +10,32 @@ env:
 #    version: 6
   - distribution: centos
     version: 7
+    releasename:
   - distribution: ubuntu
     version: 18.04
+    releasename: bionic
   - distribution: ubuntu
     version: 16.04
-#  - distribution: ubuntu
-#    version: 14.04
-#  - distribution: ubuntu
-#    version: 12.04
+    releasename: xenial
 #  - distribution: alpine
 #    version: 3.8
+#    releasename:
 
 before_install:
   - env
   - pwd
   - find -ls
-## use appropriate role path and not github name
-#  - "[ -f get-dependencies.sh ] && sh -x get-dependencies.sh"
+  - "[ -f get-puppetmodules.sh ] && sh -x get-puppetmodules.sh"
 ## No Xenial, https://github.com/travis-ci/travis-ci/issues/5821
 #  - sudo apt install lxd
   - echo "deb http://archive.ubuntu.com/ubuntu trusty-backports main restricted universe multiverse" | sudo tee /etc/apt/sources.list.d/trusty-backports.list
   - sudo apt-get update -qq
-  - sudo apt -t trusty-backports -y install lxd acl -q
-## change of group implies logout+login to apply... can't do with travis = run as root (sic)
+  - sudo apt -t trusty-backports -y install lxd acl rng-tools -q
+## change of group implies logout+login to apply... can't do with travis = run as root (sic)    = use 'newgrp lxd' ? = travis stalling all ...
 ## https://github.com/travis-ci/travis-ci/issues/1839   or chain: sudo -E su $USER -c "..."
   - sudo usermod -G lxd travis
+#  - newgrp lxd
   # Pull container
-#  - lxc remote add images images.linuxcontainers.org
   - sudo -E su $USER -c "lxc remote list"
   - sudo -E su $USER -c "lxc image list"
 ## pre-download base images
@@ -47,46 +46,63 @@ before_install:
 #  - cat /etc/default/lxd-bridge
 #  - service --status-all
   - sudo service lxd restart
-
-  - gem install test-kitchen
-  - gem install kitchen-puppet
-  - gem install librarian-puppet
-  - gem install kitchen-inspec
-  - gem install kitchen-sync
-  - gem install kitchen-lxd_cli
-  - gem list
-  - which kitchen
 ## ssh key for lxd_cli ?
   - ls ~/.ssh
   - ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -P ""
   - ssh-agent
 ## sudo/su get us a non-usual PATH ...
   - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "sh -x ./test/lxd/centos-ssh-image.sh" || true'
-  - sudo -E su $USER -c "env"
-## The command "sudo -E su $USER -c "which kitchen"" failed and exited with 1 during .
-#  - sudo -E su $USER -c "which kitchen"
-  - sudo -E su $USER -c "env PATH=$PATH kitchen diagnose --all"
+  - sudo -E su $USER -c "lxc launch ${distribution}-${version} run-${distribution}-${version//./}"
+#  - sudo -E su $USER -c "lxc start run-${distribution}-${version//./}"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- env"
+  - '[ "X${distribution}" != "Xalpine" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- dhclient eth0" || true'
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- ping -c 1 8.8.8.8"
+  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- wget https://apt.puppetlabs.com/puppet5-release-${releasename}.deb"'
+  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- dpkg -i puppet5-release-${releasename}.deb" || true'
+  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- apt-get update" || true'
+  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- apt-get -y install puppet-agent" || true'
+  - '[ "X${distribution}" == "Xcentos" -a "X${version}" == "X6" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- rpm -iUvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm" || true'
+  - '[ "X${distribution}" == "Xcentos" -a "X${version}" == "X7" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- rpm -iUvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-11.noarch.rpm" || true'
+  - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- rpm -iUvh https://yum.puppet.com/puppet5/puppet5-release-el-${version//./}.noarch.rpm" || true'
+  - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- yum update" || true'
+  - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- yum -y install puppet-agent" || true'
+
+## these lines are necessary so lxc mount is read-write, https://github.com/lxc/lxd/issues/1879
+  - chmod -R go+w $PWD
+## OR
+  - sudo -E su $USER -c "lxc config show run-${distribution}-${version//./}"
+## FIXME! awk extraction is working in shell but not in travis... relying on global chmod as test ephemeral environment. DON'T USE IN PRODUCTION!
+  - sudo -E su $USER -c "lxc config show run-${distribution}-${version//./} | awk -F'[\":,]' '/Hostid/ { print $13 }'"
+  - sudo -E su $USER -c "lxc config show run-${distribution}-${version//./} | sed -ne '/idmap.next/ s/.*\"Hostid\":\([0-9]*\),.*/\1/p'"
+#  - CUID=`sudo -E su $USER -c "lxc config show run-${distribution}-${version//./} | awk -F'[\":,]' '/idmap.next.*Hostid/ { print $13 }'"`
+  - CUID=`sudo -E su $USER -c "lxc config show run-${distribution}-${version//./} | sed -ne '/idmap.next/ s/.*\"Hostid\":\([0-9]*\),.*/\1/p'"`
+  - "echo setfacl -Rm user:$CUID:rwx ${PWD%/*}"
+  - "setfacl -Rm \"user:$CUID:rwx\" ${PWD%/*} || true"
+  - sudo -E su $USER -c "lxc config device add run-${distribution}-${version//./} shared disk path=/etc/puppetlabs/code/modules source=${PWD}/modules"
+  - sudo -E su $USER -c "lxc config device add run-${distribution}-${version//./} shared disk path=/etc/puppetlabs/environments/production source=${PWD}"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- mount"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- pwd"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- puppet config print config"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- puppet config print modulepath"
 
 script:
-#  - KITCHEN_LOCAL_YAML=.kitchen.local.yml bundle exec kitchen verify ${INSTANCE}
-  - sudo -E su $USER -c "env PATH=$PATH kitchen verify default-${distribution}-${version//./} -l debug"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- puppet apply /etc/puppetlabs/environments/production/manifests/site.pp --disable_warnings deprecations --verbose"
 
 after_failure:
-# https://github.com/inspec/kitchen-inspec/issues/142
-  - sudo -E su $USER -c "ssh-add -l"
-  - sudo -E su $USER -c "env PATH=$PATH kitchen exec ${suite}-${distribution}-${version//./} -c 'systemctl -l --no-pager status'"
-  - sudo -E su $USER -c "env PATH=$PATH kitchen exec ${suite}-${distribution}-${version//./} -c 'journalctl -xe --no-pager'"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- puppet module list --tree"
+  # Check what happened on systemd systems.
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- systemctl -l --no-pager status"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- journalctl -xe --no-pager"
 
 after_script:
-  - sudo -E su $USER -c "env PATH=$PATH kitchen exec ${suite}-${distribution}-${version//./} -c 'inspec exec test/integration/default/inspec'"
-# Note: Those profiles are for RHEL and need cpe review if used on Centos. Without that, results will be in notapplicable state.
-# https://www.centos.org/forums/viewtopic.php?t=50462
-#  - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "env PATH=$PATH kitchen exec ${suite}-${distribution}-${version//./} -c \'perl -pi -e "s@platform idref=\\\"cpe:/o:redhat:enterprise_linux:7\\\"@platform idref=\\\"cpe:/o:centos:centos:7\\\"@" /usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml\''
-#  - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "env PATH=$PATH kitchen exec ${suite}-${distribution}-${version//./} -c \'oscap xccdf eval --profile xccdf_org.ssgproject.content_profile_pci-dss --results-arf arf-pci.xml --report report-pci.html /usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml\''
-#  - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "env PATH=$PATH kitchen exec ${suite}-${distribution}-${version//./} -c \'oscap xccdf eval --profile xccdf_org.ssgproject.content_profile_stig-rhel7-disa --results-arf arf-disa.xml --report report-disa.html /usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml\''
-#  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "env PATH=$PATH kitchen exec ${suite}-${distribution}-${version//./} -c \'oscap xccdf eval --profile xccdf_org.ssgproject.content_profile_anssi_np_nt28_restrictive --results-arf arf.xml --report report.html /usr/share/scap-security-guide/ssg-ubuntu1604-ds.xml\''
-  # Clean up
-  - sudo -E su $USER -c "env PATH=$PATH kitchen destroy default-${distribution}-${version//./}"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- iptables -L -vn"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- iptables-save"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- ip6tables -L -vn"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- ip6tables-save"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- cat /etc/ntp.conf"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- ls -lR /var/lib/ntp /var/ntp/drift /var/lib/openntpd"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- cat /tmp/inspec.log"
+  - sudo -E su $USER -c "lxc stop run-${distribution}-${version//./} --force"
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
