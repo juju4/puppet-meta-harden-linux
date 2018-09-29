@@ -316,8 +316,8 @@
   }
 
 # Firewall
-if !$facts['hypervisors']['docker'] {
 class my_fw::pre {
+if !$facts['hypervisors']['docker'] {
   Firewall {
     require => undef,
   }
@@ -343,15 +343,19 @@ class my_fw::pre {
     action => 'accept',
   }
 }
+}
 
 class my_fw::post {
+if !$facts['hypervisors']['docker'] {
   firewall { '999 drop all':
     proto  => 'all',
     action => 'drop',
     before => undef,
   }
 }
+}
 
+if !$facts['hypervisors']['docker'] {
 resources { 'firewall':
   purge => true,
 }
