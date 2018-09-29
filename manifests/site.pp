@@ -93,7 +93,7 @@
         'sudo',
       ]
 
-      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables-persistent', 'libopenscap8' ]
+      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables', 'iptables-persistent', 'libopenscap8', 'ifupdown2' ]
       $deb_packages.each |String $pkg| {
         package { "${pkg}":
           provider => 'apt',
@@ -114,13 +114,12 @@
 #    default:             { include role::generic } # Apply the generic class
   }
 
-  class { ‘::resolvconf’:
-    nameservers => [‘8.8.8.8’, ‘8.8.4.4’],
-    domains     => [‘domain.tld’, ‘sub.domain.tld’],
+  class { '::resolvconf':
+    nameservers => ['8.8.8.8', '8.8.4.4'],
+    domains     => ['domain.tld', 'sub.domain.tld'],
   }
 
   # no user option for puppetlabs/ntp
-  include ntp
   class { 'ntp':
     servers   => ['pool.ntp.org'],
     restrict  => [
@@ -230,16 +229,21 @@
 #            value   => "@@remotelogserver.name",
 #         }
     },
+# https://www.rsyslog.com/doc/v8-stable/tutorials/reliable_forwarding.html
+# https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/s1-working_with_queues_in_rsyslog
     rulesets    => {
         remotesyslog => {
             parameters => {
+                'queue.filename' => 'QueueRemote',
                 'queue.type' => 'LinkedList',
                 'queue.spoolDirectory' => "/var/log/rsyslog/queue",
                 'queue.size' => 10000,
                 'queue.maxdiskspace' => '1000G',
                 'queue.timeoutqueue' => 3,
                 'queue.dequeuebatchsize' => 1000,
-                'action.resumeRetryCount' => 100,
+                'queue.saveonshutdown' => 'on',
+                'queue.timeoutenqueue' => 0,
+                'action.resumeRetryCount' => -1,
             },
             rules      => [
                 action => {
