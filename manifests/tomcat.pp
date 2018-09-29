@@ -1,3 +1,23 @@
+# https://www.ernw.de/download/hardening/ERNW_Checklist_Tomcat7_Hardening.pdf
+# https://nvd.nist.gov/ncp/repository?product=Apache+Tomcat&startIndex=0
+# https://github.com/autostructure/secure_tomcat, Apr 2017
+# https://github.com/autostructure/cis_harden_tomcat, Nov 2017
+
+case $facts['os']['name'] {
+    'RedHat', 'CentOS':  {
+
+      $ssl_dir = '/etc/pki/tls/certs'
+      $ssl_privatedir = '/etc/pki/tls/private'
+
+    }
+    /^(Debian|Ubuntu)$/: {
+
+      $ssl_dir = '/etc/ssl'
+      $ssl_privatedir = '/etc/ssl/private'
+
+    }
+#    default:             { include role::generic } # Apply the generic class
+}
 
 class { 'java': }
 
@@ -37,6 +57,22 @@ file { "/opt/tomcat9/lib/org/apache/catalina/util/ServerInfo.properties":
     File['/opt/tomcat9/lib/org/apache/catalina/util'],
     ]
 }
+# remove default webapps (required for production)
+$tomcat_absent_webapps = ['ROOT', 'docs', 'examples', 'host-manager', 'manager' ]
+$tomcat_absent_webapps.each |String $d| {
+  file { "remove-${d}":
+    path    => "/opt/tomcat9/webapps/${d}",
+    ensure  => 'present',
+    recurse => true,
+    purge   => true,
+    force   => true,
+  }
+}
+file_line { 'tomcat-disable-autodeploy':
+  path => '/opt/tomcat9/conf/server.xml',
+  line  => ' unpackWARs="true" autoDeploy="false" deployOnStartup="false">$',
+  match => ' unpackWARs="true" autoDeploy="true">$',
+}
 
 package { 'policycoreutils-python':
   ensure => installed,
@@ -50,7 +86,7 @@ package { 'openssl':
 # by internal pki or
 # by letsencrypt or whatever relevant to organization/policy
 exec { 'self_signed_certificate':
-  command => 'openssl req -x509 -nodes -sha256 -days 90 -newkey rsa:2048 -subj "/C=US/ST=CA/L=San Francisco/O=Puppet/CN=www.example.com" -keyout /etc/pki/tls/private/server.key -out /etc/pki/tls/certs/server.crt',
+  command => "openssl req -x509 -nodes -sha256 -days 90 -newkey rsa:2048 -subj \"/C=US/ST=CA/L=San Francisco/O=Puppet/CN=www.example.com\" -keyout ${ssl_privatedir}/server.key -out ${ssl_dir}/server.crt",
   path    => '/bin:/usr/bin/:/sbin:/usr/sbin',
   require => Package['openssl'],
   creates => '/etc/pki/tls/certs/server.crt',
@@ -91,8 +127,8 @@ apache::vhost { 'cert':
   ip_based   => true,
   docroot  => '/var/www/html',
   ssl      => true,
-  ssl_cert => '/etc/pki/tls/certs/server.crt',
-  ssl_key  => '/etc/pki/tls/private/server.key',
+  ssl_cert => "${ssl_dir}/server.crt",
+  ssl_key  => "${ssl_private_dir}/server.key",
 
 #  server_signature => 'Off',
 #  server_tokens => 'Prod',
