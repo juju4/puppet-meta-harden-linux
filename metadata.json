@@ -19,7 +19,7 @@
     {"name":"puppet/fail2ban","version_requirement":">= 2.3.0 < 6.0.0"},
     {"name":"puppet/rsyslog","version_requirement":">= 3.2.0 < 6.0.0"},
     {"name":"geoffwilliams/auditd","version_requirement":">= 3.0.2 < 6.0.0"},
-    {"name":"bryana/osquery","version_requirement":">= 0.1.4 < 6.0.0"},
+    {"name":"bryana/osquery","version_requirement":">= 0.2.3 < 6.0.0"},
     {"name":"eyp/epel","version_requirement":">= 3.1.21 < 6.0.0"},
     {"name":"itmanagerro/rkhunter","version_requirement":">= 1.0.1 < 6.0.0"},
     {"name":"justinjl/smarthost","version_requirement":">= 1.0.0 < 6.0.0"},
