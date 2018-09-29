@@ -316,6 +316,7 @@
   }
 
 # Firewall
+if !$facts['hypervisors']['docker'] {
 class my_fw::pre {
   Firewall {
     require => undef,
@@ -427,3 +428,4 @@ firewall { '110 allow http and https access - OUT':
   proto  => tcp,
   action => accept,
 }
+} # if !$facts['hypervisors']['docker']
