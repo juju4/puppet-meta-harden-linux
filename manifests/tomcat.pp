@@ -66,12 +66,18 @@ $tomcat_absent_webapps.each |String $d| {
     recurse => true,
     purge   => true,
     force   => true,
+    require => [
+      Class['tomcat'],
+      ]
   }
 }
 file_line { 'tomcat-disable-autodeploy':
   path => '/opt/tomcat9/conf/server.xml',
   line  => ' unpackWARs="true" autoDeploy="false" deployOnStartup="false">$',
   match => ' unpackWARs="true" autoDeploy="true">$',
+  require => [
+    Class['tomcat'],
+    ]
 }
 
 package { 'policycoreutils-python':
@@ -89,7 +95,7 @@ exec { 'self_signed_certificate':
   command => "openssl req -x509 -nodes -sha256 -days 90 -newkey rsa:2048 -subj \"/C=US/ST=CA/L=San Francisco/O=Puppet/CN=www.example.com\" -keyout ${ssl_privatedir}/server.key -out ${ssl_dir}/server.crt",
   path    => '/bin:/usr/bin/:/sbin:/usr/sbin',
   require => Package['openssl'],
-  creates => '/etc/pki/tls/certs/server.crt',
+  creates => "${ssl_dir}/server.crt",
   before  => Class['apache'],
 }
 
@@ -128,7 +134,7 @@ apache::vhost { 'cert':
   docroot  => '/var/www/html',
   ssl      => true,
   ssl_cert => "${ssl_dir}/server.crt",
-  ssl_key  => "${ssl_private_dir}/server.key",
+  ssl_key  => "${ssl_privatedir}/server.key",
 
 #  server_signature => 'Off',
 #  server_tokens => 'Prod',
