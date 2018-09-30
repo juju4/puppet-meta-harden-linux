@@ -10,7 +10,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #hardenwin.vm.network "private_network", ip: "192.168.50.100"
 
   # use hostname based on host
-  config.vm.hostname = "#{`hostname`[0..-2]}".sub(/\..*$/,'')+"-pharden-vagrant"
+  config.vm.hostname = "#{`hostname`[0..-2]}".sub(/\..*$/,'')+"-pharden-vagrant.local"
 
   # centos
   config.vm.provision "shell", inline: "rpm -Uvh https://yum.puppet.com/puppet5/puppet5-release-el-7.noarch.rpm || true"
