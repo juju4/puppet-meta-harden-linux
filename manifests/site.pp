@@ -291,7 +291,9 @@
     relayhost => '1.2.3.4',
   }
   postfix::instance { 'smtp':
-    chroot            => 'y',
+    type    => 'unix',
+    command => 'smtp',
+    chroot  => 'y',
     opts    => {
       'content_filter'               => '',
       'smtpd_helo_restrictions'      => 'permit_mynetworks,reject_non_fqdn_helo_hostname,reject_invalid_helo_hostname,permit',
