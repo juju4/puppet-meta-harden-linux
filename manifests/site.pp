@@ -289,6 +289,8 @@
     syslog_name       => 'private',
     add_default_smtpd_instance => false,
     manage_mastercf   => false,
+    readme_directory  => false,
+    append_dot_mydomain => false,
     # smarthost
     relayhost => '1.2.3.4',
   }
