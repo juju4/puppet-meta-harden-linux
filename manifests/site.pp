@@ -277,7 +277,7 @@
       export HISTFILE=\$HOME/.bash_history
       export HISTFILESIZE=5000
       export HISTIGNORE=
-      export HISTSIZE=3000
+      export HISTSIZE=5000
       export HISTTIMEFORMAT=\"%a %b %Y %T %z \"
       if [ \"X\$SHELL\" = '/bin/bash' ]; then
         typeset -r HISTCONTROL
@@ -336,7 +336,7 @@ if !$facts['hypervisors']['docker'] {
   firewall { '003 reject local traffic not on loopback interface':
     iniface     => '! lo',
     proto       => 'all',
-    destination => '127.0.0.1/8',
+    source      => '127.0.0.0/8',
     action      => 'drop',
   }->
   firewall { '004 accept related established rules':
