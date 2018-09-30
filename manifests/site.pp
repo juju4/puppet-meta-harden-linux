@@ -287,6 +287,7 @@
     subjectselfsigned => '/C=UK/ST=Shropshire/L=Telford/O=systemadmin/CN=smtp3.systemadmin.es',
     generatecert      => true,
     syslog_name       => 'private',
+    add_default_smtpd_instance => false,
     # smarthost
     relayhost => '1.2.3.4',
   }
