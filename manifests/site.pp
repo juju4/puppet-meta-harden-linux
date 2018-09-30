@@ -133,7 +133,12 @@
   class { 'fail2ban': }
   class { 'osquery': }
 
-  class { 'os_hardening': }
+  class { 'os_hardening':
+    umask => "077",
+    password_max_age => 182,
+    password_min_age => 0,
+    password_warn_age => 30,
+  }
 
   class { 'ssh_hardening::server':
     cbc_required           => $cbc_required,
@@ -278,7 +283,7 @@
       export HISTFILESIZE=5000
       export HISTIGNORE=
       export HISTSIZE=5000
-      export HISTTIMEFORMAT=\"%a %b %Y %T %z \"
+      export HISTTIMEFORMAT=\"%a %b %Y %T %z\"
       if [ \"X\$SHELL\" = '/bin/bash' ]; then
         typeset -r HISTCONTROL
         typeset -r HISTFILE
@@ -385,7 +390,7 @@ firewall { '006 Allow inbound SSH (v4)':
   chain      => 'INPUT',
   dport    => 22,
   proto    => tcp,
-  source => [
+  source   => [
     '10.0.0.0/8',
     '172.16.0.0/12',
     '192.168.0.0/16',
@@ -393,8 +398,17 @@ firewall { '006 Allow inbound SSH (v4)':
   action   => accept,
   provider => 'iptables',
 }
+# FIXME! above rule only applied to 10/8 so adding another to match inspec check
+firewall { '006 Allow inbound SSH (v4)':
+  chain    => 'INPUT',
+  dport    => 22,
+  proto    => tcp,
+  source   => '192.168.0.0/16',
+  action   => accept,
+  provider => 'iptables',
+}
 firewall { '006 Allow inbound SSH (v6)':
-  chain      => 'INPUT',
+  chain    => 'INPUT',
   dport    => 22,
   proto    => tcp,
   action   => accept,
