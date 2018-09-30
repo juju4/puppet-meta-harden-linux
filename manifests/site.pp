@@ -322,22 +322,23 @@ if !$facts['hypervisors']['docker'] {
     require => undef,
   }
    # Default firewall rules
-  firewall { '000 accept all icmp':
-    proto  => 'icmp',
-    action => 'accept',
-  }->
   firewall { '001 accept all to lo interface':
     proto   => 'all',
     iniface => 'lo',
     action  => 'accept',
   }->
-  firewall { '002 reject local traffic not on loopback interface':
+  firewall { '002 accept all from lo interface':
+    proto   => 'all',
+    outiface => 'lo',
+    action  => 'accept',
+  }->
+  firewall { '003 reject local traffic not on loopback interface':
     iniface     => '! lo',
     proto       => 'all',
     destination => '127.0.0.1/8',
-    action      => 'reject',
+    action      => 'drop',
   }->
-  firewall { '003 accept related established rules':
+  firewall { '004 accept related established rules':
     proto  => 'all',
     state  => ['RELATED', 'ESTABLISHED'],
     action => 'accept',
@@ -359,7 +360,24 @@ if !$facts['hypervisors']['docker'] {
 resources { 'firewall':
   purge => true,
 }
-
+Firewall {
+  before  => Class['my_fw::post'],
+  require => Class['my_fw::pre'],
+}
+firewall { '005 Allow outbound and established (v4)':
+  chain    => 'OUTPUT',
+  proto    => [ tcp, udp, icmp ]
+  state    => ['NEW', 'ESTABLISHED'],
+  action   => accept,
+  provider => 'iptables',
+}
+firewall { '005 Allow inbound and established (v4)':
+  chain    => 'INPUT',
+  proto    => [ tcp, udp, icmp ]
+  state    => ['ESTABLISHED'],
+  action   => accept,
+  provider => 'iptables',
+}
 firewall { '006 Allow inbound SSH (v4)':
   chain      => 'INPUT',
   dport    => 22,
@@ -391,7 +409,7 @@ firewall { '011 Allow icmp net unreachable- IN':
   proto      => icmp,
   icmp       => 0,
   action     => accept,
-  ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
+  ctstate    => ['ESTABLISHED', 'RELATED'],
 }
 firewall { '012 Allow icmp echo - OUT':
   chain      => 'OUTPUT',
@@ -405,7 +423,7 @@ firewall { '011 Allow icmp net unreachable - OUT':
   proto      => icmp,
   icmp       => 0,
   action     => accept,
-  ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
+  ctstate    => ['ESTABLISHED', 'RELATED'],
 }
 firewall { '011 Allow icmp destination unreachable - OUT':
   chain      => 'OUTPUT',
@@ -424,6 +442,12 @@ firewall { '101 allow ntp access - OUT':
   chain  => 'OUTPUT',
   dport  => 123,
   proto  => udp,
+  action => accept,
+}
+firewall { '102 allow smtp access - OUT':
+  chain  => 'OUTPUT',
+  dport  => 25,
+  proto  => tcp,
   action => accept,
 }
 firewall { '110 allow http and https access - OUT':
