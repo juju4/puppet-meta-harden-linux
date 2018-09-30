@@ -328,6 +328,7 @@ if !$facts['hypervisors']['docker'] {
     action  => 'accept',
   }->
   firewall { '002 accept all from lo interface':
+    chain    => 'OUTPUT',
     proto   => 'all',
     outiface => 'lo',
     action  => 'accept',
