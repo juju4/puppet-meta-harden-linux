@@ -100,7 +100,7 @@ before_install:
   - sudo -E su $USER -c "lxc start run-${distribution}-${version//./}"
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- hostname"
   - echo eyp_postfix_uid=112 > postfix_uid.txt
-  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc file push postfix_uid.txt run-${distribution}-${version//./}/etc/puppetlabs/facter/facts.d/postfix_uid.txt'
+  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc file push postfix_uid.txt run-${distribution}-${version//./}/etc/puppetlabs/facter/facts.d/postfix_uid.txt"'
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- find /etc/puppetlabs/facter/"
 
 script:
