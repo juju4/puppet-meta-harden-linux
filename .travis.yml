@@ -95,7 +95,6 @@ script:
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/puppetlabs/bin/puppet apply /etc/puppetlabs/environments/production/manifests/site.pp --disable_warnings deprecations --verbose"
 
 after_failure:
-  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/puppetlabs/bin/puppet module list --tree"
   # Check what happened on systemd systems.
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- systemctl -l --no-pager status"
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- journalctl -xe --no-pager"
@@ -131,6 +130,7 @@ after_script:
 #  - '[ "X${distribution}" == "Xubuntu" -a "X${version}" == "X18.04" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- perl -pi -e \"s@platform idref=\\\"cpe:/o:canonical:ubuntu_linux:16.04\\\"@platform idref=\\\"cpe:/o:canonical:ubuntu_linux:18.04\\\"@\" /usr/share/scap-security-guide/ssg-ubuntu1604-ds.xml"'
   - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- oscap xccdf eval --profile xccdf_org.ssgproject.content_profile_anssi_np_nt28_restrictive --results-arf arf.xml --report report.html /usr/share/scap-security-guide/ssg-ubuntu1604-ds.xml"'
 
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/puppetlabs/bin/puppet module list --tree"
   - sudo -E su $USER -c "lxc stop run-${distribution}-${version//./} --force"
 
 notifications:
