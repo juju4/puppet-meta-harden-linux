@@ -46,7 +46,7 @@
       ]
 
       # kmod required for /etc/modprobe.d
-      $rpm_packages = ['kmod', 'iptables-services', 'perf', 'openscap-scanner', 'scap-security-guide', 'which' ]
+      $rpm_packages = ['kmod', 'iptables-services', 'perf', 'openscap-scanner', 'scap-security-guide', 'which', 'openssl' ]
       $rpm_packages.each |String $pkg| {
         package { "${pkg}":
           provider => 'yum',
@@ -297,6 +297,7 @@
   postfix::instance { 'smtp':
     type    => 'unix',
     command => 'smtp',
+# FIXME! rhel: not applied
     chroot  => 'y',
     opts    => {
       'content_filter'               => '',
@@ -305,12 +306,16 @@
       'smtpd_recipient_restrictions' => 'permit_mynetworks,permit_sasl_authenticated,reject_unauth_destination,reject_unknown_recipient_domain,reject_rbl_client cbl.abuseat.org, reject_rbl_client b.barracudacentral.org,reject',
       'mynetworks'                   => '127.0.0.0/8,10.0.2.15/32',
       'receive_override_options'     => 'no_header_body_checks',
+# FIXME! not applied
       'smtpd_helo_required'          => 'yes',
       'smtpd_client_restrictions'    => '',
       'smtpd_restriction_classes'    => '',
+# FIXME! not applied
       'disable_vrfy_command'         => 'yes',
       #'strict_rfc821_envelopes'      => 'yes',
+# FIXME! not applied
       'smtpd_sasl_auth_enable'       => 'yes',
+# FIXME! not applied
       'smtp_sasl_security_options'   => 'noanonymous',
       #'smtp_sasl_password_maps'      => 'hash:/etc/postfix/smarthost_passwd',
       'syslog_name'                   => 'public',
@@ -327,7 +332,9 @@
       # https://isc.sans.edu/forums/diary/Hardening+Postfix+Against+FTP+Relay+Attacks/22086/
       'smtpd_forbidden_commands'      => 'CONNECT,GET,POST,USER,PASS',
       # https://cipherli.st/
+# FIXME! not applied
       'smtp_use_tls'                  => 'yes',
+# FIXME! not applied
       'smtpd_use_tls'                 => 'yes',
       'smtpd_tls_security_level'      => 'may',
       'smtpd_tls_auth_only'           => 'yes',
@@ -335,12 +342,14 @@
       #'smtpd_tls_key_file'            => '',
       'smtpd_tls_session_cache_database' => 'btree:${data_directory}/smtpd_scache',
       'smtpd_tls_mandatory_protocols' => '!SSLv2,!SSLv3,!TLSv1,!TLSv1.1',
+# FIXME! not applied
       'smtpd_tls_protocols'           => '!SSLv2,!SSLv3,!TLSv1,!TLSv1.1',
       'smtpd_tls_mandatory_ciphers'   => 'medium',
       'tls_medium_cipherlist'         => 'AES128+EECDH:AES128+EDH',
       # https://marc.info/?l=postfix-users&m=140058464921413&w=2
       # https://marc.info/?l=postfix-users&m=140059435225323&w=2
       #if it is *not* a public MX
+# FIXME! not applied
       'smtpd_tls_exclude_ciphers'      => 'aNULL, eNULL, EXP, MD5, IDEA, KRB5, RC2, SEED, SRP',
       #'smtp_tls_exclude_ciphers'       => 'EXPORT, LOW',
       },
