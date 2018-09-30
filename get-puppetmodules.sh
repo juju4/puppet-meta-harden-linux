@@ -14,9 +14,9 @@ m=modules
 #[ ! -d $m/firewall ] && git clone https://github.com/puppetlabs/puppetlabs-firewall $m/puppetlabs-firewall
 #[ ! -d $m/cisecurity ] && git clone https://github.com/cohdjn/cisecurity $m/cohdjn-cisecurity
 
-[ ! -d $m/stdlib ] && git clone https://github.com/puppetlabs/puppetlabs-stdlib.git $m/stdlib
+[ ! -d $m/stdlib ] && git clone https://github.com/puppetlabs/puppetlabs-stdlib.git $m/stdlib --branch 4.25.1
 # https://tickets.puppetlabs.com/browse/MODULES-2145
-[ ! -d $m/apt ] && git clone --config transfer.fsckobjects=false --config fetch.fsckobjects=false --config receive.fsckobjects=false https://github.com/puppetlabs/puppetlabs-apt.git $m/apt
+[ ! -d $m/apt ] && git clone --config transfer.fsckobjects=false --config fetch.fsckobjects=false --config receive.fsckobjects=false https://github.com/puppetlabs/puppetlabs-apt.git $m/apt --branch 5.0.1
 [ ! -d $m/translate ] && git clone https://github.com/puppetlabs/puppetlabs-translate.git $m/translate
 [ ! -d $m/accounts ] && git clone https://github.com/puppetlabs/puppetlabs-accounts.git $m/accounts
 [ ! -d $m/hardening-stdlib ] && git clone https://github.com/dev-sec/puppet-hardening-stdlib $m/hardening-stdlib
@@ -28,14 +28,14 @@ m=modules
 #[ ! -d $m/cisecurity ] && git clone https://github.com/cohdjn/cisecurity $m/cisecurity
 #[ ! -d $m/auditd ] && git clone https://github.com/kemra102/puppet-auditd.git $m/auditd
 [ ! -d $m/auditd ] && git clone https://github.com/GeoffWilliams/puppet-auditd.git $m/auditd
-[ ! -d $m/filemagic ] && git clone https://github.com/GeoffWilliams/puppet-filemagic.git $m/filemagic
+[ ! -d $m/filemagic ] && git clone https://github.com/GeoffWilliams/puppet-filemagic.git $m/filemagic --branch v0.5.2
 [ ! -d $m/osquery ] && git clone https://github.com/BIAndrews/puppet-osquery.git $m/osquery
 [ ! -d $m/ntp ] && git clone https://github.com/puppetlabs/puppetlabs-ntp $m/ntp
 [ ! -d $m/rsyslog ] && git clone https://github.com/voxpupuli/puppet-rsyslog.git $m/rsyslog
-[ ! -d $m/puppetlabs-concat ] && git clone https://github.com/puppetlabs/puppetlabs-concat.git $m/concat
+[ ! -d $m/puppetlabs-concat ] && git clone https://github.com/puppetlabs/puppetlabs-concat.git $m/concat --branch 4.2.1
 [ ! -d $m/epel ] && git clone https://github.com/jordiprats/eyp-epel.git $m/epel
 [ ! -d $m/fail2ban ] && git clone https://github.com/voxpupuli/puppet-fail2ban.git $m/fail2ban
-[ ! -d $m/extlib ] && git clone https://github.com/voxpupuli/puppet-extlib.git $m/extlib
+[ ! -d $m/extlib ] && git clone https://github.com/voxpupuli/puppet-extlib.git $m/extlib --branch v2.3.1
 [ ! -d $m/rkhunter ] && git clone https://github.com/itmanagerro/puppet-rkhunter.git $m/rkhunter
 [ ! -d $m/telegraf ] && git clone https://github.com/ouroboros8/puppet-telegraf.git $m/telegraf
 [ ! -d $m/postfix ] && git clone https://github.com/NTTCom-MS/eyp-postfix.git $m/postfix
