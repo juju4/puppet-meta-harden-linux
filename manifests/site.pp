@@ -288,6 +288,7 @@
     generatecert      => true,
     syslog_name       => 'private',
     add_default_smtpd_instance => false,
+    manage_mastercf   => false,
     # smarthost
     relayhost => '1.2.3.4',
   }
