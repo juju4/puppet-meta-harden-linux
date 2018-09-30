@@ -91,7 +91,10 @@ before_install:
   - sudo sysctl -w kernel.sysrq=0
   - sudo sysctl -w kernel.core_pattern='/tmp/cores/core.%e.%p.%h.%t'
 # Ubuntu postfix install seems to have issue if non-fqdn hostname
-  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- 'hostname | sed 's@$@.local@' > /etc/hostname'"
+  - echo run-${distribution}-${version//./}.local > hostname
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- cat /etc/hostname"
+  - sudo -E su $USER -c "lxc file push hostname run-${distribution}-${version//./}/etc/hostname"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- cat /etc/hostname"
 
 script:
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/puppetlabs/bin/puppet apply /etc/puppetlabs/environments/production/manifests/site.pp --disable_warnings deprecations --verbose"
