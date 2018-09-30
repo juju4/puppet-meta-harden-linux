@@ -193,6 +193,14 @@
             'value' => '64k',
         }
     },
+# https://unix.stackexchange.com/questions/103218/add-year-to-entries-generated-by-rsyslogd
+# https://github.com/rsyslog/rsyslog/issues/65
+    template        => {
+        'FullTimeFormat' => {
+            'type'   => string,
+            'string' => '"%timestamp:::date-year%-%timestamp:::date-month%-%timestamp:::date-day% %timestamp:::date-hour%:%timestamp:::date-minute%:%timestamp:::date-second% %timestamp:::date-tzoffsdirection%%timestamp:::date-tzoffshour%:%timestamp:::date-tzoffsmin% %HOSTNAME% %syslogtag% %msg%"'
+        }
+    },
     legacy_config   => {
 
 # RedHat normal setup
@@ -232,6 +240,8 @@
 #         remotesyslog => {
 #            key     => "*.*",
 #            value   => "@@remotelogserver.name",
+#            value   => "@@remotelogserver.name;FullTimeFormat",
+#            value   => "@@remotelogserver.name;RSYSLOG_SyslogProtocol23Format",
 #         }
     },
 # https://www.rsyslog.com/doc/v8-stable/tutorials/reliable_forwarding.html
