@@ -1,0 +1,38 @@
+---
+lockfile_version: 1
+depends:
+- name: linux-baseline
+  resolved_source:
+    url: https://github.com/juju4/linux-baseline/archive/master.tar.gz
+    sha256: 8b6d5d64b7ae55b1b66b223fbacb28635116606b7d302d62430f5b98e40bf5a9
+  version_constraints: []
+- name: ssh-baseline
+  resolved_source:
+    url: https://github.com/dev-sec/ssh-baseline/archive/master.tar.gz
+    sha256: 8ddb04d6264a117e28f41229e3fec5a9de3115a3e19e24c275fa8b42c2e0e7f3
+  version_constraints: []
+- name: osquery-baseline
+  resolved_source:
+    url: https://github.com/juju4/inspec-osquery/archive/master.tar.gz
+    sha256: 9abcb32596674ebe61cce81d7862718119b5ebdc35f56f8367b07242088198c7
+  version_constraints: []
+- name: ntp-baseline
+  resolved_source:
+    url: https://github.com/juju4/inspec-ntp/archive/master.tar.gz
+    sha256: ffeb9f4d7638156ea423f1dfbcbaa5ab99b1b707e7b292052a79ef69bffff092
+  version_constraints: []
+- name: audit-baseline
+  resolved_source:
+    url: https://github.com/juju4/inspec-audit/archive/master.tar.gz
+    sha256: 32ad41a4db05361bd27af4e12ca8c344e54370c9ed46abcd34bad9058f95c454
+  version_constraints: []
+- name: syslog-baseline
+  resolved_source:
+    url: https://github.com/juju4/inspec-syslog/archive/master.tar.gz
+    sha256: ccfa8d5c74f21ecea87264384ad0fe9a31b2b195a4b61b663543905860c612e9
+  version_constraints: []
+- name: postfix-baseline
+  resolved_source:
+    url: https://github.com/juju4/inspec-postfix/archive/master.tar.gz
+    sha256: ca4602a20561ba25b96b26f9b93a88c3e934af79df69ee94ad24354fa976fbb7
+  version_constraints: []
