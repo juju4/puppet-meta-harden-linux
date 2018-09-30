@@ -46,7 +46,7 @@
       ]
 
       # kmod required for /etc/modprobe.d
-      $rpm_packages = ['kmod', 'iptables-services', 'perf', 'openscap-scanner', 'scap-security-guide' ]
+      $rpm_packages = ['kmod', 'iptables-services', 'perf', 'openscap-scanner', 'scap-security-guide', 'which' ]
       $rpm_packages.each |String $pkg| {
         package { "${pkg}":
           provider => 'yum',
@@ -278,7 +278,8 @@
 
   # mailserver
   class { 'postfix':
-    inetinterfaces    => 'all',
+    #inetinterfaces    => 'all',
+    inetinterfaces    => 'loopback-only',
     mynetworks        => [ '127.0.0.1/32' ],
     myhostname        => 'smtp3.systemadmin.es',
     smtpdbanner       => 'smtp3.systemadmin.es ESMTP',
@@ -286,22 +287,9 @@
     subjectselfsigned => '/C=UK/ST=Shropshire/L=Telford/O=systemadmin/CN=smtp3.systemadmin.es',
     generatecert      => true,
     syslog_name       => 'private',
+    chroot            => 'y',
     # smarthost
     relayhost => '1.2.3.4',
-  }
-
-  class { 'postfix::vmail': }
-  postfix::vmail::account { 'systemadmin@systemadmin.es':
-    accountname => 'systemadmin',
-    domain      => 'systemadmin.com',
-    password    => 'systemadmin_secret_passw0rd',
-  }
-
-  postfix::instance { '0.0.0.0:2525':
-    type    => 'inet',
-    private => 'n',
-    chroot  => 'n',
-    command => 'smtpd',
     opts    => {
       'content_filter'               => '',
       'smtpd_helo_restrictions'      => 'permit_mynetworks,reject_non_fqdn_helo_hostname,reject_invalid_helo_hostname,permit',
@@ -314,7 +302,7 @@
       'smtpd_restriction_classes'    => '',
       'disable_vrfy_command'         => 'yes',
       #'strict_rfc821_envelopes'      => 'yes',
-      'smtpd_sasl_auth_enable'       => 'no',
+      'smtpd_sasl_auth_enable'       => 'yes',
       'smtp_sasl_security_options'   => 'noanonymous',
       #'smtp_sasl_password_maps'      => 'hash:/etc/postfix/smarthost_passwd',
       'syslog_name'                   => 'public',
@@ -328,10 +316,10 @@
       'message_size_limit'            => 10485760,
       'smtpd_recipient_limit'         => 10,
       'smtpd_delay_reject'            => 'yes',
-      'smtpd_helo_required'           => 'yes',
       # https://isc.sans.edu/forums/diary/Hardening+Postfix+Against+FTP+Relay+Attacks/22086/
       'smtpd_forbidden_commands'      => 'CONNECT,GET,POST,USER,PASS',
       # https://cipherli.st/
+      'smtp_use_tls'                  => 'yes',
       'smtpd_use_tls'                 => 'yes',
       'smtpd_tls_security_level'      => 'may',
       'smtpd_tls_auth_only'           => 'yes',
@@ -348,8 +336,10 @@
       'smtpd_tls_exclude_ciphers'      => 'aNULL, eNULL, EXP, MD5, IDEA, KRB5, RC2, SEED, SRP',
       #'smtp_tls_exclude_ciphers'       => 'EXPORT, LOW',
       },
-    order   => '99',
   }
+
+  class { 'postfix::vmail': }
+
 # suggested, RFC2142. TODO: alias to your context
   postfix::vmail::alias { 'webmaster':
     aliasto => [ 'root' ],
