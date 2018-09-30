@@ -366,14 +366,14 @@ Firewall {
 }
 firewall { '005 Allow outbound and established (v4)':
   chain    => 'OUTPUT',
-  proto    => [ tcp, udp, icmp ]
+  proto    => [ tcp, udp, icmp ],
   state    => ['NEW', 'ESTABLISHED'],
   action   => accept,
   provider => 'iptables',
 }
 firewall { '005 Allow inbound and established (v4)':
   chain    => 'INPUT',
-  proto    => [ tcp, udp, icmp ]
+  proto    => [ tcp, udp, icmp ],
   state    => ['ESTABLISHED'],
   action   => accept,
   provider => 'iptables',
