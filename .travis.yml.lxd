@@ -106,7 +106,7 @@ after_script:
   - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- dpkg -i inspec_2.3.4-1_amd64.deb" || true'
   - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- rpm -iUvh https://packages.chef.io/files/stable/inspec/2.3.4/el/7/inspec-2.3.4-1.el7.x86_64.rpm" || true'
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- find /etc/puppetlabs/environments/production/test/integration/default/"
-  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/inspec/bin/inspec exec /etc/puppetlabs/environments/production/test/integration/default/inspec | tee /tmp/inspec.log"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/inspec/bin/inspec exec /etc/puppetlabs/environments/production/test/integration/default/inspec --attrs /etc/puppetlabs/environments/production/test/integration/default/inspec/profile-attributes.yml | tee /tmp/inspec.log"
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/inspec/bin/inspec exec https://github.com/juju4/linux-baseline/archive/master.tar.gz"
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/inspec/bin/inspec exec https://github.com/juju4/ssh-baseline/archive/master.tar.gz"
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/inspec/bin/inspec exec https://github.com/juju4/inspec-osquery/archive/master.tar.gz"
