@@ -277,6 +277,25 @@
   }
 
   # mailserver
+# suggested, RFC2142. TODO: alias to your context
+  postfix::vmail::alias { 'webmaster':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'support':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'noc':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'abuse':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'security':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'soc':
+    aliasto => [ 'root' ],
+  }
   class { '::smarthost' :
     smarthost   => 'mail.yourprovider.com',
     domain      => 'yourdomain.com',
