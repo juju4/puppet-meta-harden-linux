@@ -399,7 +399,7 @@ firewall { '006 Allow inbound SSH (v4)':
   provider => 'iptables',
 }
 # FIXME! above rule only applied to 10/8 so adding another to match inspec check
-firewall { '006 Allow inbound SSH (v4)':
+firewall { '006 Allow inbound SSH (v4)b':
   chain    => 'INPUT',
   dport    => 22,
   proto    => tcp,
