@@ -195,7 +195,7 @@
     },
 # https://unix.stackexchange.com/questions/103218/add-year-to-entries-generated-by-rsyslogd
 # https://github.com/rsyslog/rsyslog/issues/65
-    template        => {
+    templates        => {
         'FullTimeFormat' => {
             'type'   => string,
             'string' => '"%timestamp:::date-year%-%timestamp:::date-month%-%timestamp:::date-day% %timestamp:::date-hour%:%timestamp:::date-minute%:%timestamp:::date-second% %timestamp:::date-tzoffsdirection%%timestamp:::date-tzoffshour%:%timestamp:::date-tzoffsmin% %HOSTNAME% %syslogtag% %msg%"'
