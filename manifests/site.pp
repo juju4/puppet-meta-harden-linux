@@ -287,9 +287,11 @@
     subjectselfsigned => '/C=UK/ST=Shropshire/L=Telford/O=systemadmin/CN=smtp3.systemadmin.es',
     generatecert      => true,
     syslog_name       => 'private',
-    chroot            => 'y',
     # smarthost
     relayhost => '1.2.3.4',
+  },
+  postfix::instance { 'smtp':
+    chroot            => 'y',
     opts    => {
       'content_filter'               => '',
       'smtpd_helo_restrictions'      => 'permit_mynetworks,reject_non_fqdn_helo_hostname,reject_invalid_helo_hostname,permit',
