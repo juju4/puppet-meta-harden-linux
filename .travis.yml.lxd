@@ -95,6 +95,10 @@ before_install:
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- cat /etc/hostname"
   - sudo -E su $USER -c "lxc file push hostname run-${distribution}-${version//./}/etc/hostname"
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- cat /etc/hostname"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- hostname"
+  - sudo -E su $USER -c "lxc stop run-${distribution}-${version//./}"
+  - sudo -E su $USER -c "lxc start run-${distribution}-${version//./}"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- hostname"
 
 script:
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/puppetlabs/bin/puppet apply /etc/puppetlabs/environments/production/manifests/site.pp --disable_warnings deprecations --verbose"
