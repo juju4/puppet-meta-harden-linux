@@ -356,6 +356,8 @@ if !$facts['hypervisors']['docker'] {
 }
 }
 
+class { ['my_fw::pre', 'my_fw::post']: }
+
 if !$facts['hypervisors']['docker'] {
 resources { 'firewall':
   purge => true,
