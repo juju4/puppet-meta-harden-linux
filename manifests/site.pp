@@ -286,6 +286,8 @@
     subjectselfsigned => '/C=UK/ST=Shropshire/L=Telford/O=systemadmin/CN=smtp3.systemadmin.es',
     generatecert      => true,
     syslog_name       => 'private',
+    # smarthost
+    relayhost => '1.2.3.4',
   }
 
   class { 'postfix::vmail': }
@@ -313,6 +315,8 @@
       'disable_vrfy_command'         => 'yes',
       #'strict_rfc821_envelopes'      => 'yes',
       'smtpd_sasl_auth_enable'       => 'no',
+      'smtp_sasl_security_options'   => 'noanonymous',
+      #'smtp_sasl_password_maps'      => 'hash:/etc/postfix/smarthost_passwd',
       'syslog_name'                   => 'public',
       'biff'                          => 'no',
       'append_dot_mydomain'           => 'no',
@@ -364,11 +368,6 @@
   }
   postfix::vmail::alias { 'soc':
     aliasto => [ 'root' ],
-  }
-  class { '::smarthost' :
-    smarthost   => 'mail.yourprovider.com',
-    domain      => 'yourdomain.com',
-    mta         => postfix,
   }
 
   file { '/etc/profile.d/security':
