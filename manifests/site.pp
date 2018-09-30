@@ -289,7 +289,7 @@
     syslog_name       => 'private',
     # smarthost
     relayhost => '1.2.3.4',
-  },
+  }
   postfix::instance { 'smtp':
     chroot            => 'y',
     opts    => {
