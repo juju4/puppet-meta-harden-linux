@@ -6,6 +6,7 @@ ENV['VAGRANT_DEFAULT_PROVIDER'] = 'virtualbox'
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "centos/7"
+  #config.vm.box = "ubuntu/bionic64"
   #hardenwin.vm.network "private_network", ip: "192.168.50.100"
 
   # use hostname based on host
