@@ -15,3 +15,5 @@ include_controls 'audit-baseline' do
 end
 include_controls 'syslog-baseline' do
 end
+include_controls 'postfix-baseline' do
+end

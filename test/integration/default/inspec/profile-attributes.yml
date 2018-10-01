@@ -1,0 +1,55 @@
+login_defs_umask: 077
+login_defs_passmaxdays: '182'
+login_defs_passmindays: '0'
+login_defs_passwarnage: '30'
+sysctl_forwarding: false
+sysctl_ipv6: true
+kernel_modules_disabled: 0
+profile_file: '/etc/profile.d/security'
+# Take care of silent arguments and order that might change...
+iptables_loopback_policy: [
+  '-A INPUT -i lo -m comment --comment "001 accept all to lo interface" -j ACCEPT',
+  '-A INPUT -s 127.0.0.0/8 ! -i lo -m comment --comment "003 reject local traffic not on loopback interface" -j DROP',
+  '-A OUTPUT -o lo -m comment --comment "002 accept all from lo interface" -j ACCEPT'
+]
+iptables_established_policy: [
+  '-A INPUT -m state --state RELATED,ESTABLISHED -m comment --comment "004 accept related established rules" -j ACCEPT',
+  '-A INPUT -p tcp -m state --state ESTABLISHED -m comment --comment "005 Allow inbound and established (v4)" -j ACCEPT',
+  '-A OUTPUT -p tcp -m state --state NEW,ESTABLISHED -m comment --comment "005 Allow outbound and established (v4)" -j ACCEPT'
+]
+iptables_input_ports: [
+  '-A INPUT -s 192.168.0.0/16 -p tcp -m multiport --dports 22 -m comment --comment "006 Allow inbound SSH (v4)b" -j ACCEPT',
+  '-A INPUT -s 10.0.0.0/8 -p tcp -m multiport --dports 22 -m comment --comment "006 Allow inbound SSH (v4)" -j ACCEPT',
+#  '-A INPUT -p icmp -m icmp --icmp-type 8 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT',
+#  '-A INPUT -p icmp -m icmp --icmp-type 8 -m conntrack --ctstate NEW,RELATED,ESTABLISHED -j ACCEPT',
+  '-A INPUT -p icmp -m conntrack --ctstate NEW,RELATED,ESTABLISHED -m icmp --icmp-type 8 -m comment --comment "010 Allow icmp echo - IN" -j ACCEPT',
+#  '-A INPUT -p icmp -m icmp --icmp-type 0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT'
+#  '-A INPUT -p icmp -m icmp --icmp-type 0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT'
+  '-A INPUT -p icmp -m conntrack --ctstate RELATED,ESTABLISHED -m icmp --icmp-type 0 -m comment --comment "011 Allow icmp net unreachable- IN" -j ACCEPT'
+]
+iptables_output_ports: [
+  '-A OUTPUT -p tcp -m multiport --dports 53 -m comment --comment "100 allow dns access - OUT" -j ACCEPT',
+  '-A OUTPUT -p udp -m multiport --dports 123 -m comment --comment "101 allow ntp access - OUT" -j ACCEPT',
+  '-A OUTPUT -p tcp -m multiport --dports 25 -m comment --comment "102 allow smtp access - OUT" -j ACCEPT',
+#  '-A OUTPUT -p tcp --dport 80 -j ACCEPT',
+#  '-A OUTPUT -p tcp --dport 443 -j ACCEPT',
+  '-A OUTPUT -p tcp -m multiport --dports 80,443 -m comment --comment "110 allow http and https access - OUT" -j ACCEPT',
+#  '-A OUTPUT -p icmp -m icmp --icmp-type 0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT',
+#  '-A OUTPUT -p icmp -m icmp --icmp-type 0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT',
+  '-A OUTPUT -p icmp -m conntrack --ctstate RELATED,ESTABLISHED -m icmp --icmp-type 0 -m comment --comment "011 Allow icmp net unreachable - OUT" -j ACCEPT',
+#  '-A OUTPUT -p icmp -m icmp --icmp-type 8 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT',
+#  '-A OUTPUT -p icmp -m icmp --icmp-type 8 -m conntrack --ctstate NEW,RELATED,ESTABLISHED -j ACCEPT',
+  '-A OUTPUT -p icmp -m conntrack --ctstate NEW,RELATED,ESTABLISHED -m icmp --icmp-type 8 -m comment --comment "012 Allow icmp echo - OUT" -j ACCEPT',
+#  '-A OUTPUT -p icmp -m icmp --icmp-type 3 -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT'
+#  '-A OUTPUT -p icmp -m icmp --icmp-type 3 -m conntrack --ctstate NEW,RELATED,ESTABLISHED -j ACCEPT'
+  '-A OUTPUT -p icmp -m conntrack --ctstate NEW,RELATED,ESTABLISHED -m icmp --icmp-type 3 -m comment --comment "011 Allow icmp destination unreachable - OUT" -j ACCEPT'
+]
+#sshd_valid_ciphers:
+sshd_valid_kexs: 'curve25519-sha256@libssh.org'
+sshd_valid_macs: 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com'
+sshd_permittunnel: "no"
+sshd_tcpforwarding: "no"
+sshd_agentforwarding: "no"
+sshd_gatewayports: "no"
+sshd_x11forwarding: "no"
+sshd_banner: "/etc/issue.net"

@@ -46,7 +46,7 @@
       ]
 
       # kmod required for /etc/modprobe.d
-      $rpm_packages = ['kmod', 'iptables-services', 'perf', 'openscap-scanner', 'scap-security-guide' ]
+      $rpm_packages = ['kmod', 'iptables-services', 'perf', 'openscap-scanner', 'scap-security-guide', 'which', 'openssl' ]
       $rpm_packages.each |String $pkg| {
         package { "${pkg}":
           provider => 'yum',
@@ -133,7 +133,18 @@
   class { 'fail2ban': }
   class { 'osquery': }
 
-  class { 'os_hardening': }
+  class { 'os_hardening':
+    umask => "077",
+    password_max_age => 182,
+    password_min_age => 0,
+    password_warn_age => 30,
+  }
+  file_line { 'Set Account Expiration Following Inactivity':
+    ensure => present,
+    path   => '/etc/default/useradd',
+    line   => 'INACTIVE=90',
+    match  => '^export\ INACTIVE\=',
+  }
 
   class { 'ssh_hardening::server':
     cbc_required           => $cbc_required,
@@ -188,6 +199,14 @@
             'value' => '64k',
         }
     },
+# https://unix.stackexchange.com/questions/103218/add-year-to-entries-generated-by-rsyslogd
+# https://github.com/rsyslog/rsyslog/issues/65
+    templates        => {
+        'FullTimeFormat' => {
+            'type'   => string,
+            'string' => '"%timestamp:::date-year%-%timestamp:::date-month%-%timestamp:::date-day% %timestamp:::date-hour%:%timestamp:::date-minute%:%timestamp:::date-second% %timestamp:::date-tzoffsdirection%%timestamp:::date-tzoffshour%:%timestamp:::date-tzoffsmin% %HOSTNAME% %syslogtag% %msg%"'
+        }
+    },
     legacy_config   => {
 
 # RedHat normal setup
@@ -227,6 +246,8 @@
 #         remotesyslog => {
 #            key     => "*.*",
 #            value   => "@@remotelogserver.name",
+#            value   => "@@remotelogserver.name;FullTimeFormat",
+#            value   => "@@remotelogserver.name;RSYSLOG_SyslogProtocol23Format",
 #         }
     },
 # https://www.rsyslog.com/doc/v8-stable/tutorials/reliable_forwarding.html
@@ -262,10 +283,104 @@
   }
 
   # mailserver
-  class { '::smarthost' :
-    smarthost   => 'mail.yourprovider.com',
-    domain      => 'yourdomain.com',
-    mta         => postfix,
+  class { 'postfix':
+    #inetinterfaces    => 'all',
+    inetinterfaces    => 'loopback-only',
+    mynetworks        => [ '127.0.0.1/32' ],
+    myhostname        => 'smtp3.systemadmin.es',
+    smtpdbanner       => 'smtp3.systemadmin.es ESMTP',
+    opportunistictls  => true,
+    subjectselfsigned => '/C=UK/ST=Shropshire/L=Telford/O=systemadmin/CN=smtp3.systemadmin.es',
+    generatecert      => true,
+    syslog_name       => 'private',
+    add_default_smtpd_instance => false,
+    manage_mastercf   => false,
+    readme_directory  => false,
+    append_dot_mydomain => false,
+    # smarthost
+    relayhost => '1.2.3.4',
+  }
+  postfix::instance { 'smtp':
+    type    => 'unix',
+    command => 'smtp',
+# FIXME! rhel: not applied
+    chroot  => 'y',
+    opts    => {
+      'content_filter'               => '',
+      'smtpd_helo_restrictions'      => 'permit_mynetworks,reject_non_fqdn_helo_hostname,reject_invalid_helo_hostname,permit',
+      'smtpd_sender_restrictions'    => 'permit_mynetworks,reject_non_fqdn_sender,reject_unknown_sender_domain,permit',
+      'smtpd_recipient_restrictions' => 'permit_mynetworks,permit_sasl_authenticated,reject_unauth_destination,reject_unknown_recipient_domain,reject_rbl_client cbl.abuseat.org, reject_rbl_client b.barracudacentral.org,reject',
+      'mynetworks'                   => '127.0.0.0/8,10.0.2.15/32',
+      'receive_override_options'     => 'no_header_body_checks',
+# FIXME! not applied
+      'smtpd_helo_required'          => 'yes',
+      'smtpd_client_restrictions'    => '',
+      'smtpd_restriction_classes'    => '',
+# FIXME! not applied
+      'disable_vrfy_command'         => 'yes',
+      #'strict_rfc821_envelopes'      => 'yes',
+# FIXME! not applied
+      'smtpd_sasl_auth_enable'       => 'yes',
+# FIXME! not applied
+      'smtp_sasl_security_options'   => 'noanonymous',
+      #'smtp_sasl_password_maps'      => 'hash:/etc/postfix/smarthost_passwd',
+      'syslog_name'                   => 'public',
+      'biff'                          => 'no',
+      'append_dot_mydomain'           => 'no',
+      'default_process_limit'         => 100,
+      'smtpd_client_connection_count_limit' => 100,
+      'smtpd_client_connection_rate_limit'  => 100,
+      'queue_minfree'                 => 20971520,
+      'header_size_limit'             => 51200,
+      'message_size_limit'            => 10485760,
+      'smtpd_recipient_limit'         => 10,
+      'smtpd_delay_reject'            => 'yes',
+      # https://isc.sans.edu/forums/diary/Hardening+Postfix+Against+FTP+Relay+Attacks/22086/
+      'smtpd_forbidden_commands'      => 'CONNECT,GET,POST,USER,PASS',
+      # https://cipherli.st/
+# FIXME! not applied
+      'smtp_use_tls'                  => 'yes',
+# FIXME! not applied
+      'smtpd_use_tls'                 => 'yes',
+      'smtpd_tls_security_level'      => 'may',
+      'smtpd_tls_auth_only'           => 'yes',
+      #'smtpd_tls_cert_file'           => '',
+      #'smtpd_tls_key_file'            => '',
+      'smtpd_tls_session_cache_database' => 'btree:${data_directory}/smtpd_scache',
+      'smtpd_tls_mandatory_protocols' => '!SSLv2,!SSLv3,!TLSv1,!TLSv1.1',
+# FIXME! not applied
+      'smtpd_tls_protocols'           => '!SSLv2,!SSLv3,!TLSv1,!TLSv1.1',
+      'smtpd_tls_mandatory_ciphers'   => 'medium',
+      'tls_medium_cipherlist'         => 'AES128+EECDH:AES128+EDH',
+      # https://marc.info/?l=postfix-users&m=140058464921413&w=2
+      # https://marc.info/?l=postfix-users&m=140059435225323&w=2
+      #if it is *not* a public MX
+# FIXME! not applied
+      'smtpd_tls_exclude_ciphers'      => 'aNULL, eNULL, EXP, MD5, IDEA, KRB5, RC2, SEED, SRP',
+      #'smtp_tls_exclude_ciphers'       => 'EXPORT, LOW',
+      },
+  }
+
+  class { 'postfix::vmail': }
+
+# suggested, RFC2142. TODO: alias to your context
+  postfix::vmail::alias { 'webmaster':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'support':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'noc':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'abuse':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'security':
+    aliasto => [ 'root' ],
+  }
+  postfix::vmail::alias { 'soc':
+    aliasto => [ 'root' ],
   }
 
   file { '/etc/profile.d/security':
@@ -277,8 +392,8 @@
       export HISTFILE=\$HOME/.bash_history
       export HISTFILESIZE=5000
       export HISTIGNORE=
-      export HISTSIZE=3000
-      export HISTTIMEFORMAT=\"%a %b %Y %T %z \"
+      export HISTSIZE=5000
+      export HISTTIMEFORMAT=\"%a %b %Y %T %z\"
       if [ \"X\$SHELL\" = '/bin/bash' ]; then
         typeset -r HISTCONTROL
         typeset -r HISTFILE
@@ -317,49 +432,75 @@
 
 # Firewall
 class my_fw::pre {
+if !$facts['hypervisors']['docker'] {
   Firewall {
     require => undef,
   }
    # Default firewall rules
-  firewall { '000 accept all icmp':
-    proto  => 'icmp',
-    action => 'accept',
-  }->
   firewall { '001 accept all to lo interface':
     proto   => 'all',
     iniface => 'lo',
     action  => 'accept',
   }->
-  firewall { '002 reject local traffic not on loopback interface':
+  firewall { '002 accept all from lo interface':
+    chain    => 'OUTPUT',
+    proto   => 'all',
+    outiface => 'lo',
+    action  => 'accept',
+  }->
+  firewall { '003 reject local traffic not on loopback interface':
     iniface     => '! lo',
     proto       => 'all',
-    destination => '127.0.0.1/8',
-    action      => 'reject',
+    source      => '127.0.0.0/8',
+    action      => 'drop',
   }->
-  firewall { '003 accept related established rules':
+  firewall { '004 accept related established rules':
     proto  => 'all',
     state  => ['RELATED', 'ESTABLISHED'],
     action => 'accept',
   }
 }
+}
 
 class my_fw::post {
+if !$facts['hypervisors']['docker'] {
   firewall { '999 drop all':
     proto  => 'all',
     action => 'drop',
     before => undef,
   }
 }
+}
 
+class { ['my_fw::pre', 'my_fw::post']: }
+
+if !$facts['hypervisors']['docker'] {
 resources { 'firewall':
   purge => true,
 }
-
+Firewall {
+  before  => Class['my_fw::post'],
+  require => Class['my_fw::pre'],
+}
+firewall { '005 Allow outbound and established (v4)':
+  chain    => 'OUTPUT',
+  proto    => [ tcp, udp, icmp ],
+  state    => ['NEW', 'ESTABLISHED'],
+  action   => accept,
+  provider => 'iptables',
+}
+firewall { '005 Allow inbound and established (v4)':
+  chain    => 'INPUT',
+  proto    => [ tcp, udp, icmp ],
+  state    => ['ESTABLISHED'],
+  action   => accept,
+  provider => 'iptables',
+}
 firewall { '006 Allow inbound SSH (v4)':
   chain      => 'INPUT',
   dport    => 22,
   proto    => tcp,
-  source => [
+  source   => [
     '10.0.0.0/8',
     '172.16.0.0/12',
     '192.168.0.0/16',
@@ -367,8 +508,17 @@ firewall { '006 Allow inbound SSH (v4)':
   action   => accept,
   provider => 'iptables',
 }
+# FIXME! above rule only applied to 10/8 so adding another to match inspec check
+firewall { '006 Allow inbound SSH (v4)b':
+  chain    => 'INPUT',
+  dport    => 22,
+  proto    => tcp,
+  source   => '192.168.0.0/16',
+  action   => accept,
+  provider => 'iptables',
+}
 firewall { '006 Allow inbound SSH (v6)':
-  chain      => 'INPUT',
+  chain    => 'INPUT',
   dport    => 22,
   proto    => tcp,
   action   => accept,
@@ -386,7 +536,7 @@ firewall { '011 Allow icmp net unreachable- IN':
   proto      => icmp,
   icmp       => 0,
   action     => accept,
-  ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
+  ctstate    => ['ESTABLISHED', 'RELATED'],
 }
 firewall { '012 Allow icmp echo - OUT':
   chain      => 'OUTPUT',
@@ -400,7 +550,7 @@ firewall { '011 Allow icmp net unreachable - OUT':
   proto      => icmp,
   icmp       => 0,
   action     => accept,
-  ctstate    => ['NEW', 'ESTABLISHED', 'RELATED'],
+  ctstate    => ['ESTABLISHED', 'RELATED'],
 }
 firewall { '011 Allow icmp destination unreachable - OUT':
   chain      => 'OUTPUT',
@@ -419,6 +569,12 @@ firewall { '101 allow ntp access - OUT':
   chain  => 'OUTPUT',
   dport  => 123,
   proto  => udp,
+  action => accept,
+}
+firewall { '102 allow smtp access - OUT':
+  chain  => 'OUTPUT',
+  dport  => 25,
+  proto  => tcp,
   action => accept,
 }
 firewall { '110 allow http and https access - OUT':
@@ -455,3 +611,4 @@ firewall { '052 Allow https traffic - IN':
   action   => accept,
   provider => 'iptables',
 }
+} # if !$facts['hypervisors']['docker']
