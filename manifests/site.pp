@@ -139,6 +139,12 @@
     password_min_age => 0,
     password_warn_age => 30,
   }
+  file_line { 'Set Account Expiration Following Inactivity':
+    ensure => present,
+    path   => /etc/default/useradd,
+    line   => 'INACTIVE=90',
+    match  => '^export\ INACTIVE\=',
+  }
 
   class { 'ssh_hardening::server':
     cbc_required           => $cbc_required,
