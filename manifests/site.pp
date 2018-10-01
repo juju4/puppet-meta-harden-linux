@@ -141,7 +141,7 @@
   }
   file_line { 'Set Account Expiration Following Inactivity':
     ensure => present,
-    path   => /etc/default/useradd,
+    path   => '/etc/default/useradd',
     line   => 'INACTIVE=90',
     match  => '^export\ INACTIVE\=',
   }
