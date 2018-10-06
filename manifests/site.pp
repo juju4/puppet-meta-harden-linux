@@ -482,7 +482,7 @@ if !$facts['hypervisors']['docker'] {
     proto  => 'all',
     state  => ['RELATED', 'ESTABLISHED'],
     action => 'accept',
-  }
+  }->
   firewall { '007 Allow Link-Local addresses (v6)':
     chain       => [ 'INPUT', 'OUTPUT'],
     proto       => 'all',
@@ -498,7 +498,7 @@ if !$facts['hypervisors']['docker'] {
     action      => 'accept',
     state       => 'NEW',
     provider    => 'ip6tables',
-  }->
+  }
 #  firewall { '008 Local DHCP - OUT (v6)':
 #    chain       => 'OUTPUT',
 #    proto       => udp,
@@ -508,7 +508,7 @@ if !$facts['hypervisors']['docker'] {
 #    action      => 'accept',
 #    state       => 'NEW',
 #    provider    => 'ip6tables',
-#  }->
+#  }
 }
 }
 
