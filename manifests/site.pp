@@ -114,6 +114,10 @@
 #    default:             { include role::generic } # Apply the generic class
   }
 
+  class { 'timezone':
+    timezone => 'UTC',
+  }
+
   class { '::resolvconf':
     nameservers => ['8.8.8.8', '8.8.4.4'],
     domains     => ['domain.tld', 'sub.domain.tld'],
