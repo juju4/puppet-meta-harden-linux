@@ -1,4 +1,21 @@
 
+# TODO: have minimum two
+  $resolvconf_nameservers = ['8.8.8.8', '8.8.4.4']
+  $resolvconf_domains = ['domain.tld', 'sub.domain.tld']
+# TODO: have minimum two
+  $ntp_servers = ['pool.ntp.org']
+  $lograte_days = 90
+  $syslog_remotehost = 'remotelogserver.name'
+  $syslog_remoteport = 514
+  $syslog_dest = "@@${syslog_remotehost}:${syslog_remoteport}"
+  $syslog_dest = '/var/log/custom.log'
+  $postfix_myhostname = 'smtp3.systemadmin.es'
+  $postfix_selfsignedcert = '/C=UK/ST=Shropshire/L=Telford/O=systemadmin/CN=smtp3.systemadmin.es'
+  $postfix_relayhost = '1.2.3.4'
+  $postfix_alias_webmaster = [ 'root' ]
+  $postfix_alias_noc = [ 'root' ]
+  $postfix_alias_security = [ 'root' ]
+
   $pkgs_upgradeall = false
   $cbc_required          = false
   $weak_hmac             = false
@@ -131,15 +148,13 @@
   }
 
   class { '::resolvconf':
-# TODO: have minimum two
-    nameservers => ['8.8.8.8', '8.8.4.4'],
-    domains     => ['domain.tld', 'sub.domain.tld'],
+    nameservers => $resolvconf_nameservers,
+    domains     => $resolvconf_domains,
   }
 
   # no user option for puppetlabs/ntp
   class { 'ntp':
-# TODO: have minimum two
-    servers   => ['pool.ntp.org'],
+    servers   => $ntp_servers,
     restrict  => [
       'default ignore',
       '-6 default ignore',
@@ -264,9 +279,9 @@
 # remote syslog
 #         remotesyslog => {
 #            key     => "*.*",
-#            value   => "@@remotelogserver.name",
-#            value   => "@@remotelogserver.name;FullTimeFormat",
-#            value   => "@@remotelogserver.name;RSYSLOG_SyslogProtocol23Format",
+#            value   => "${syslog_dest}",
+#            value   => "${syslog_dest};FullTimeFormat",
+#            value   => "${syslog_dest};RSYSLOG_SyslogProtocol23Format",
 #         }
     },
 # https://www.rsyslog.com/doc/v8-stable/tutorials/reliable_forwarding.html
@@ -291,8 +306,8 @@
                     facility => "*.*",
                     config => {
                         type    => 'omfwd',
-                        target  => 'remotelogserver.local',
-                        port    => 514,
+                        target  => $syslog_remotehost,
+                        port    => $syslog_remote_port,
                         protocol => 'tcp',
                     },
                 }
@@ -305,7 +320,7 @@
     config => {
       dateext      => true,
       compress     => true,
-      rotate       => 90,
+      rotate       => $logrotate_days,
       rotate_every => 'daily',
       ifempty      => true,
     }
@@ -316,10 +331,10 @@
     #inetinterfaces    => 'all',
     inetinterfaces    => 'loopback-only',
     mynetworks        => [ '127.0.0.1/32' ],
-    myhostname        => 'smtp3.systemadmin.es',
-    smtpdbanner       => 'smtp3.systemadmin.es ESMTP',
+    myhostname        => $postfix_myhostname,
+    smtpdbanner       => "${postfix_myhostname} ESMTP",
     opportunistictls  => true,
-    subjectselfsigned => '/C=UK/ST=Shropshire/L=Telford/O=systemadmin/CN=smtp3.systemadmin.es',
+    subjectselfsigned => $postfix_selfsignedcert,
     generatecert      => true,
     syslog_name       => 'private',
     add_default_smtpd_instance => false,
@@ -327,7 +342,7 @@
     readme_directory  => false,
     append_dot_mydomain => false,
     # smarthost
-    relayhost => '1.2.3.4',
+    relayhost => $postfix_relayhost,
   }
   postfix::instance { 'smtp':
     type    => 'unix',
@@ -339,7 +354,7 @@
       'smtpd_helo_restrictions'      => 'permit_mynetworks,reject_non_fqdn_helo_hostname,reject_invalid_helo_hostname,permit',
       'smtpd_sender_restrictions'    => 'permit_mynetworks,reject_non_fqdn_sender,reject_unknown_sender_domain,permit',
       'smtpd_recipient_restrictions' => 'permit_mynetworks,permit_sasl_authenticated,reject_unauth_destination,reject_unknown_recipient_domain,reject_rbl_client cbl.abuseat.org, reject_rbl_client b.barracudacentral.org,reject',
-      'mynetworks'                   => '127.0.0.0/8,10.0.2.15/32',
+      'mynetworks'                   => '127.0.0.0/8,10.0.0.0/8,192.168.0.0/16',
       'receive_override_options'     => 'no_header_body_checks',
 # FIXME! not applied
       'smtpd_helo_required'          => 'yes',
@@ -394,22 +409,22 @@
 
 # suggested, RFC2142. TODO: alias to your context
   postfix::vmail::alias { 'webmaster':
-    aliasto => [ 'root' ],
+    aliasto => $postfix_alias_webmaster,
   }
   postfix::vmail::alias { 'support':
-    aliasto => [ 'root' ],
+    aliasto => $postfix_alias_webmaster,
   }
   postfix::vmail::alias { 'noc':
-    aliasto => [ 'root' ],
+    aliasto => $postfix_alias_noc,
   }
   postfix::vmail::alias { 'abuse':
-    aliasto => [ 'root' ],
+    aliasto => $postfix_alias_security,
   }
   postfix::vmail::alias { 'security':
-    aliasto => [ 'root' ],
+    aliasto => $postfix_alias_security,
   }
   postfix::vmail::alias { 'soc':
-    aliasto => [ 'root' ],
+    aliasto => $postfix_alias_security,
   }
 
   file { '/etc/profile.d/security':
