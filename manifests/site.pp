@@ -476,6 +476,7 @@ if !$facts['hypervisors']['docker'] {
     proto       => 'all',
     source      => '::1/128',
     action      => 'drop',
+    provider    => 'ip6tables',
   }->
   firewall { '004 accept related established rules':
     proto  => 'all',
@@ -487,6 +488,7 @@ if !$facts['hypervisors']['docker'] {
     proto       => 'all',
     source      => 'fe80::/10',
     action      => 'accept',
+    provider    => 'ip6tables',
   }->
   firewall { '008 Local DHCP - IN (v6)':
     chain       => 'INPUT',
@@ -495,6 +497,7 @@ if !$facts['hypervisors']['docker'] {
     dport       => 546,
     action      => 'accept',
     state       => 'NEW',
+    provider    => 'ip6tables',
   }->
 #  firewall { '008 Local DHCP - OUT (v6)':
 #    chain       => 'OUTPUT',
@@ -504,6 +507,7 @@ if !$facts['hypervisors']['docker'] {
 #    dport       => 67,
 #    action      => 'accept',
 #    state       => 'NEW',
+#    provider    => 'ip6tables',
 #  }->
 }
 }
