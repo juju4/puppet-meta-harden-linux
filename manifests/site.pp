@@ -587,4 +587,19 @@ firewall { '110 allow http and https access - OUT':
   proto  => tcp,
   action => accept,
 }
+firewallchain { 'INPUT:filter:IPv4':
+  ensure => present,
+  policy => drop,
+  before => undef,
+}
+firewallchain { 'OUTPUT:filter:IPv4':
+  ensure => present,
+  policy => drop,
+  before => undef,
+}
+firewallchain { 'FORWARD:filter:IPv4':
+  ensure => present,
+  policy => drop,
+  before => undef,
+}
 } # if !$facts['hypervisors']['docker']
