@@ -446,11 +446,24 @@ if !$facts['hypervisors']['docker'] {
     iniface => 'lo',
     action  => 'accept',
   }->
+  firewall { '001 accept all to lo interface (v6)':
+    proto   => 'all',
+    iniface => 'lo',
+    action  => 'accept',
+    provider => 'ip6tables',
+  }->
   firewall { '002 accept all from lo interface':
     chain    => 'OUTPUT',
     proto   => 'all',
     outiface => 'lo',
     action  => 'accept',
+  }->
+  firewall { '002 accept all from lo interface (v6)':
+    chain    => 'OUTPUT',
+    proto   => 'all',
+    outiface => 'lo',
+    action  => 'accept',
+    provider => 'ip6tables',
   }->
   firewall { '003 reject local traffic not on loopback interface':
     iniface     => '! lo',
@@ -458,11 +471,40 @@ if !$facts['hypervisors']['docker'] {
     source      => '127.0.0.0/8',
     action      => 'drop',
   }->
+  firewall { '003 reject local traffic not on loopback interface (v6)':
+    iniface     => '! lo',
+    proto       => 'all',
+    source      => '::1/128',
+    action      => 'drop',
+  }->
   firewall { '004 accept related established rules':
     proto  => 'all',
     state  => ['RELATED', 'ESTABLISHED'],
     action => 'accept',
   }
+  firewall { '007 Allow Link-Local addresses (v6)':
+    chain       => [ 'INPUT', 'OUTPUT'],
+    proto       => 'all',
+    source      => 'fe80::/10',
+    action      => 'accept',
+  }->
+  firewall { '008 Local DHCP - IN (v6)':
+    chain       => 'INPUT',
+    proto       => tcp,
+    source      => 'fe80::/10',
+    dport       => 546,
+    action      => 'accept',
+    state       => 'NEW',
+  }->
+#  firewall { '008 Local DHCP - OUT (v6)':
+#    chain       => 'OUTPUT',
+#    proto       => udp,
+#    destination => '<IPV6_DHCP_SERVER>',
+#    sport       => 68,
+#    dport       => 67,
+#    action      => 'accept',
+#    state       => 'NEW',
+#  }->
 }
 }
 
@@ -575,11 +617,32 @@ firewall { '100 allow dns tcp access - OUT':
   proto  => tcp,
   action => accept,
 }
+firewall { '100 allow dns access - OUT (v6)':
+  chain  => 'OUTPUT',
+  dport  => 53,
+  proto  => udp,
+  action => accept,
+  provider => 'ip6tables',
+}
+firewall { '100 allow dns tcp access - OUT (v6)':
+  chain  => 'OUTPUT',
+  dport  => 53,
+  proto  => tcp,
+  action => accept,
+  provider => 'ip6tables',
+}
 firewall { '101 allow ntp access - OUT':
   chain  => 'OUTPUT',
   dport  => 123,
   proto  => udp,
   action => accept,
+}
+firewall { '101 allow ntp access - OUT (v6)':
+  chain  => 'OUTPUT',
+  dport  => 123,
+  proto  => udp,
+  action => accept,
+  provider => 'ip6tables',
 }
 firewall { '102 allow smtp access - OUT':
   chain  => 'OUTPUT',
@@ -587,11 +650,25 @@ firewall { '102 allow smtp access - OUT':
   proto  => tcp,
   action => accept,
 }
+firewall { '102 allow smtp access - OUT (v6)':
+  chain  => 'OUTPUT',
+  dport  => 25,
+  proto  => tcp,
+  action => accept,
+  provider => 'ip6tables',
+}
 firewall { '110 allow http and https access - OUT':
   chain  => 'OUTPUT',
   dport  => [80, 443],
   proto  => tcp,
   action => accept,
+}
+firewall { '110 allow http and https access - OUT (v6)':
+  chain  => 'OUTPUT',
+  dport  => [80, 443],
+  proto  => tcp,
+  action => accept,
+  provider => 'ip6tables',
 }
 firewallchain { 'INPUT:filter:IPv4':
   ensure => present,
@@ -604,6 +681,21 @@ firewallchain { 'OUTPUT:filter:IPv4':
   before => undef,
 }
 firewallchain { 'FORWARD:filter:IPv4':
+  ensure => present,
+  policy => drop,
+  before => undef,
+}
+firewallchain { 'INPUT:filter:IPv6':
+  ensure => present,
+  policy => drop,
+  before => undef,
+}
+firewallchain { 'OUTPUT:filter:IPv6':
+  ensure => present,
+  policy => drop,
+  before => undef,
+}
+firewallchain { 'FORWARD:filter:IPv6':
   ensure => present,
   policy => drop,
   before => undef,
