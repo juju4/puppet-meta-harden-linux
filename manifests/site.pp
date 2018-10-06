@@ -46,7 +46,7 @@
       ]
 
       # kmod required for /etc/modprobe.d
-      $rpm_packages = ['kmod', 'iptables-services', 'perf', 'openscap-scanner', 'scap-security-guide', 'which', 'openssl' ]
+      $rpm_packages = ['kmod', 'iptables-services', 'perf', 'openscap-scanner', 'scap-security-guide', 'which', 'openssl', 'audit' ]
       $rpm_packages.each |String $pkg| {
         package { "${pkg}":
           provider => 'yum',
@@ -105,7 +105,7 @@
         'sudo',
       ]
 
-      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables', 'iptables-persistent', 'libopenscap8', 'ifupdown2' ]
+      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables', 'iptables-persistent', 'libopenscap8', 'ifupdown2', 'auditd' ]
       $deb_packages.each |String $pkg| {
         package { "${pkg}":
           provider => 'apt',
