@@ -85,6 +85,18 @@
       class { 'epel': }
 #      class { 'rkhunter': }
 
+      if ($facts['lsbmajdistrelease'] == '7') {
+        package { "libpwquality":
+          provider => 'yum',
+          ensure   => 'present',
+        }
+        file_line { 'lippwquality: Set Password Minimum Length':
+          ensure => present,
+          path   => '/etc/security/pwquality.conf',
+          line   => 'minlen=15',
+          match  => '^minlen\=',
+        }
+      }
     }
     /^(Debian|Ubuntu)$/: {
 
