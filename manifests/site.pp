@@ -8,7 +8,7 @@
   $syslog_remotehost = 'remotelogserver.name'
   $syslog_remoteport = 514
   $syslog_dest = "@@${syslog_remotehost}:${syslog_remoteport}"
-  $syslog_dest = '/var/log/custom.log'
+  #$syslog_dest = '/var/log/custom.log'
   $postfix_myhostname = 'smtp3.systemadmin.es'
   $postfix_selfsignedcert = '/C=UK/ST=Shropshire/L=Telford/O=systemadmin/CN=smtp3.systemadmin.es'
   $postfix_relayhost = '1.2.3.4'
