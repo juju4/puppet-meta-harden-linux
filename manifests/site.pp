@@ -4,7 +4,7 @@
   $resolvconf_domains = ['domain.tld', 'sub.domain.tld']
 # TODO: have minimum two
   $ntp_servers = ['pool.ntp.org']
-  $lograte_days = 90
+  $logrotate_days = 90
   $syslog_remotehost = 'remotelogserver.name'
   $syslog_remoteport = 514
   $syslog_dest = "@@${syslog_remotehost}:${syslog_remoteport}"
