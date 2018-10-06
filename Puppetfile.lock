@@ -69,5 +69,6 @@ DEPENDENCIES
   puppetlabs-ntp (>= 0)
   puppetlabs-stdlib (>= 0)
   saz-timezone (>= 0)
+  stm-debconf (>= 0)
   suchpuppet-resolvconf (>= 0)
 
