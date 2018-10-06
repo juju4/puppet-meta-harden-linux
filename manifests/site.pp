@@ -841,6 +841,7 @@ firewallchain { 'FORWARD:filter:IPv6':
   ensure => present,
   policy => drop,
   before => undef,
+}
 
 ## tomcat
 firewall { '051 Allow http traffic - IN':
