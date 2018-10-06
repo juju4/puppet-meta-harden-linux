@@ -889,8 +889,11 @@ class { '::telegraf':
         },
 #        'sensors' => {
 #        },
+        # requires /server-status
 #        'apache' => {
 #        },
-
+        # requires /manager/status
+#        'tomcat' => {
+#        },
     }
 }

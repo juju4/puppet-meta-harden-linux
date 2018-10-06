@@ -188,6 +188,11 @@ Encryption: https://www.nuance.com/security/pgp-key.txt
 Signature: https://www.nuance.com/.well-known/security.txt.sig",
   }
 
+#apache::mod::status { 'apache-server-status':
+#  allow_from  => ['127.0.0.1','::1'],
+#  status_path => '/server-status',
+#}
+
 apache::balancer { 'puppet00': }
 
 apache::balancermember { "${::fqdn}-puppet00":
