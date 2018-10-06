@@ -287,6 +287,61 @@
 # https://www.rsyslog.com/doc/v8-stable/tutorials/reliable_forwarding.html
 # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/s1-working_with_queues_in_rsyslog
     rulesets    => {
+        auditsyslog => {
+            parameters => {
+                'queue.filename' => 'QueueAudit',
+                'queue.type' => 'LinkedList',
+                'queue.spoolDirectory' => "/var/log/rsyslog/queue",
+                'queue.size' => 10000,
+                'queue.maxdiskspace' => '10G',
+                'queue.timeoutqueue' => 3,
+                'queue.dequeuebatchsize' => 1000,
+                'queue.saveonshutdown' => 'on',
+                'queue.timeoutenqueue' => 0,
+                'action.resumeRetryCount' => -1,
+            },
+            rules      => [
+                action => {
+                    name    => 'auditlogs',
+                    # match /etc/audisp/plugins.d/syslog.conf
+                    facility => "info.*",
+                    config => {
+                        type    => 'omfwd',
+                        target  => $syslog_remotehost,
+                        port    => $syslog_remote_port,
+                        protocol => 'tcp',
+                    },
+                }
+            ],
+            stop       => true,
+        },
+        osquerysyslog => {
+            parameters => {
+                'queue.filename' => 'QueueOsquery',
+                'queue.type' => 'LinkedList',
+                'queue.spoolDirectory' => "/var/log/rsyslog/queue",
+                'queue.size' => 10000,
+                'queue.maxdiskspace' => '10G',
+                'queue.timeoutqueue' => 3,
+                'queue.dequeuebatchsize' => 1000,
+                'queue.saveonshutdown' => 'on',
+                'queue.timeoutenqueue' => 0,
+                'action.resumeRetryCount' => -1,
+            },
+            rules      => [
+                action => {
+                    name    => 'osquerylogs',
+                    facility => "local3.*",
+                    config => {
+                        type    => 'omfwd',
+                        target  => $syslog_remotehost,
+                        port    => $syslog_remote_port,
+                        protocol => 'tcp',
+                    },
+                }
+            ],
+            stop       => true,
+        },
         remotesyslog => {
             parameters => {
                 'queue.filename' => 'QueueRemote',
