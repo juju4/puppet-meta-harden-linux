@@ -8,12 +8,14 @@ case $facts['os']['name'] {
 
       $ssl_dir = '/etc/pki/tls/certs'
       $ssl_privatedir = '/etc/pki/tls/private'
+      $policycoreutils = 'policycoreutils-python'
 
     }
     /^(Debian|Ubuntu)$/: {
 
       $ssl_dir = '/etc/ssl'
       $ssl_privatedir = '/etc/ssl/private'
+      $policycoreutils = 'policycoreutils-python-utils'
 
     }
 #    default:             { include role::generic } # Apply the generic class
@@ -88,7 +90,7 @@ Class['tomcat'] ~> File['/opt/tomcat9/webapps/host-manager']
 Class['tomcat'] ~> File['/opt/tomcat9/webapps/manager']
 Class['tomcat'] ~> File_line['tomcat-disable-autodeploy']
 
-package { 'policycoreutils-python':
+package { "${policycoreutils}":
   ensure => installed,
 }
 
