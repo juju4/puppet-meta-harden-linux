@@ -156,6 +156,7 @@
     password_max_age => 182,
     password_min_age => 0,
     password_warn_age => 30,
+    ignore_users     => [ 'postfix' ],
   }
   file_line { 'Set Account Expiration Following Inactivity':
     ensure => present,
