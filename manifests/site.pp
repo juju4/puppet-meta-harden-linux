@@ -300,6 +300,16 @@
         }
     }
   }
+  class { '::logrotate':
+    ensure => 'latest',
+    config => {
+      dateext      => true,
+      compress     => true,
+      rotate       => 90,
+      rotate_every => 'daily',
+      ifempty      => true,
+    }
+  }
 
   # mailserver
   class { 'postfix':
