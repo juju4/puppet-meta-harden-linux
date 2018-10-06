@@ -308,7 +308,7 @@
                     config => {
                         type    => 'omfwd',
                         target  => $syslog_remotehost,
-                        port    => $syslog_remote_port,
+                        port    => $syslog_remoteport,
                         protocol => 'tcp',
                     },
                 }
@@ -335,7 +335,7 @@
                     config => {
                         type    => 'omfwd',
                         target  => $syslog_remotehost,
-                        port    => $syslog_remote_port,
+                        port    => $syslog_remoteport,
                         protocol => 'tcp',
                     },
                 }
@@ -362,7 +362,7 @@
                     config => {
                         type    => 'omfwd',
                         target  => $syslog_remotehost,
-                        port    => $syslog_remote_port,
+                        port    => $syslog_remoteport,
                         protocol => 'tcp',
                     },
                 }
