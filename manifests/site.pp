@@ -783,8 +783,6 @@ class { '::telegraf':
 #        },
 #        'apache' => {
 #        },
-    }
-}
 
     }
 }
