@@ -215,5 +215,5 @@ apache::balancermember { "${::fqdn}-puppet00":
 exec { 'set_apache_defaults':
   command => 'setsebool -P httpd_can_network_relay on',
   path    => '/bin:/usr/bin/:/sbin:/usr/sbin',
-  require => Package['policycoreutils-python'],
+  require => Package["${policycoreutils}"],
 }
