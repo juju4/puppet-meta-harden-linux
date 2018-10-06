@@ -80,6 +80,14 @@ file_line { 'tomcat-disable-autodeploy':
     ]
 }
 
+Class['tomcat'] -> File['/opt/tomcat9/lib'] -> File['/opt/tomcat9/lib/org/apache/catalina/util'] -> File["/opt/tomcat9/lib/org/apache/catalina/util/ServerInfo.properties"]
+Class['tomcat'] ~> File['/opt/tomcat9/webapps/ROOT']
+Class['tomcat'] ~> File['/opt/tomcat9/webapps/docs']
+Class['tomcat'] ~> File['/opt/tomcat9/webapps/examples']
+Class['tomcat'] ~> File['/opt/tomcat9/webapps/host-manager']
+Class['tomcat'] ~> File['/opt/tomcat9/webapps/manager']
+Class['tomcat'] ~> File_line['tomcat-disable-autodeploy']
+
 package { 'policycoreutils-python':
   ensure => installed,
 }
