@@ -45,4 +45,4 @@ m=modules
 [ ! -d $m/resolvconf ] && git clone https://github.com/suchpuppet/puppet-resolvconf.git $m/resolvconf
 [ ! -d $m/timezone ] && git clone https://github.com/saz/puppet-timezone.git $m/timezone
 [ ! -d $m/debconf ] && git clone https://github.com/smoeding/puppet-debconf.git $m/debconf
-[ ! -d $m/logrotate ] && git clone https://github.com/voxpopuli/puppet-logrotate.git $m/logrotate
+[ ! -d $m/logrotate ] && git clone https://github.com/voxpupuli/puppet-logrotate.git $m/logrotate
