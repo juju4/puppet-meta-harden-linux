@@ -566,7 +566,13 @@ firewall { '011 Allow icmp destination unreachable - OUT':
 firewall { '100 allow dns access - OUT':
   chain  => 'OUTPUT',
   dport  => 53,
-  proto  => [tcp, udp],
+  proto  => udp,
+  action => accept,
+}
+firewall { '100 allow dns tcp access - OUT':
+  chain  => 'OUTPUT',
+  dport  => 53,
+  proto  => tcp,
   action => accept,
 }
 firewall { '101 allow ntp access - OUT':
