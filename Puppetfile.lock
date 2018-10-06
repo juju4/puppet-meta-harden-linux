@@ -1,8 +1,9 @@
 FORGE
   remote: https://forgeapi.puppetlabs.com
   specs:
-    bryana-osquery (0.1.4)
+    bryana-osquery (0.2.3)
       puppetlabs-apt (>= 2.0.0)
+      puppetlabs-stdlib (>= 2.2.1)
     eyp-epel (3.1.21)
       puppetlabs-stdlib (>= 1.0.0)
     geoffwilliams-auditd (3.0.2)
@@ -21,8 +22,6 @@ FORGE
       puppetlabs-stdlib (< 6.5.4, >= 1.2.3)
     justinjl-smarthost (1.0.0)
       puppetlabs-stdlib (>= 1.0.0)
-    puppet-archive (2.3.0)
-      puppetlabs-stdlib (< 5.0.0, >= 4.13.1)
     puppet-extlib (2.3.0)
       puppetlabs-stdlib (< 5.0.0, >= 4.6.0)
     puppet-fail2ban (2.3.0)
@@ -45,10 +44,15 @@ FORGE
     saz-ssh (4.0.0)
       puppetlabs-concat (< 5.0.0, >= 2.2.0)
       puppetlabs-stdlib (< 5.0.0, >= 4.24.0)
+    saz-timezone (5.0.2)
+      puppetlabs-stdlib (< 5.0.0, >= 2.6.0)
+      stm-debconf (< 3.0.0, >= 2.0.0)
+    stm-debconf (2.2.1)
+    suchpuppet-resolvconf (0.1.0)
     thias-sysctl (1.0.6)
 
 DEPENDENCIES
-  bryana-osquery (>= 0)
+  bryana-osquery (= 0.2.3)
   eyp-epel (>= 0)
   geoffwilliams-auditd (>= 0)
   hardening-hardening_stdlib (>= 0)
@@ -56,7 +60,6 @@ DEPENDENCIES
   hardening-ssh_hardening (>= 0)
   itmanagerro-rkhunter (>= 0)
   justinjl-smarthost (>= 0)
-  puppet-archive (= 2.3.0)
   puppet-fail2ban (>= 0)
   puppet-rsyslog (>= 0)
   puppetlabs-accounts (>= 0)
@@ -65,4 +68,6 @@ DEPENDENCIES
   puppetlabs-firewall (>= 0)
   puppetlabs-ntp (>= 0)
   puppetlabs-stdlib (>= 0)
+  saz-timezone (>= 0)
+  suchpuppet-resolvconf (>= 0)
 
