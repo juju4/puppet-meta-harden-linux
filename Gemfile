@@ -63,6 +63,7 @@ group :system_tests do
 end
 
 gem 'puppet', *location_for(ENV['PUPPET_GEM_VERSION'])
+gem 'toml-rb', '>= 1.1.2'
 
 # Only explicitly specify Facter/Hiera if a version has been specified.
 # Otherwise it can lead to strange bundler behavior. If you are seeing weird
