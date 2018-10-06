@@ -728,7 +728,7 @@ class { '::telegraf':
             'database' => 'telegraf',
             'username' => 'telegraf',
             'password' => 'metricsmetricsmetrics',
-            }
+            },
         'graphite' => {
             'server'   => [ "localhost:2003" ],
             'prefix'   => 'telegraf',
