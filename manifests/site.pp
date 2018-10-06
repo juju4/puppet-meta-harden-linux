@@ -131,12 +131,14 @@
   }
 
   class { '::resolvconf':
+# TODO: have minimum two
     nameservers => ['8.8.8.8', '8.8.4.4'],
     domains     => ['domain.tld', 'sub.domain.tld'],
   }
 
   # no user option for puppetlabs/ntp
   class { 'ntp':
+# TODO: have minimum two
     servers   => ['pool.ntp.org'],
     restrict  => [
       'default ignore',
