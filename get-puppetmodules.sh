@@ -44,3 +44,4 @@ m=modules
 [ ! -d $m/smarthost ] && git clone https://github.com/justinjl6/puppet-smarthost.git $m/smarthost
 [ ! -d $m/resolvconf ] && git clone https://github.com/suchpuppet/puppet-resolvconf.git $m/resolvconf
 [ ! -d $m/timezone ] && git clone https://github.com/saz/puppet-timezone.git $m/timezone
+[ ! -d $m/debconf ] && git clone https://github.com/smoeding/puppet-debconf.git $m/debconf
