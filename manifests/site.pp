@@ -61,6 +61,7 @@
       $user_sudogroups = [
         'wheel',
       ]
+      $apache_logdir = '/var/log/httpd'
 
       # kmod required for /etc/modprobe.d
       $rpm_packages = ['kmod', 'iptables-services', 'perf', 'openscap-scanner', 'scap-security-guide', 'which', 'openssl', 'audit' ]
@@ -121,6 +122,7 @@
       $user_sudogroups = [
         'sudo',
       ]
+      $apache_logdir = '/var/log/apache2'
 
       $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables', 'iptables-persistent', 'libopenscap8', 'ifupdown2', 'auditd' ]
       $deb_packages.each |String $pkg| {
@@ -284,6 +286,20 @@
 #            value   => "${syslog_dest};RSYSLOG_SyslogProtocol23Format",
 #         }
     },
+   inputs => {
+        'imfile' => {
+            'type'        => "imfile",
+            'config'      => {
+              'File'      => "${apache_logdir}/access*log",
+              'Tag'       => 'apache-access:',
+              'StateFile' => 'stat-apache-access',
+              'Severity'  => 'info',
+              'PersistStateInterval' => 20000,
+              'Ruleset'   => "remoteapachelog",
+              'Facility'  => "local6",
+            }
+        }
+    },
 # https://www.rsyslog.com/doc/v8-stable/tutorials/reliable_forwarding.html
 # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/s1-working_with_queues_in_rsyslog
     rulesets    => {
@@ -332,6 +348,33 @@
                 action => {
                     name    => 'osquerylogs',
                     facility => "local3.*",
+                    config => {
+                        type    => 'omfwd',
+                        target  => $syslog_remotehost,
+                        port    => $syslog_remoteport,
+                        protocol => 'tcp',
+                    },
+                }
+            ],
+            stop       => true,
+        },
+        remoteapachelog => {
+            parameters => {
+                'queue.filename' => 'QueueApache',
+                'queue.type' => 'LinkedList',
+                'queue.spoolDirectory' => "/var/log/rsyslog/queue",
+                'queue.size' => 10000,
+                'queue.maxdiskspace' => '10G',
+                'queue.timeoutqueue' => 3,
+                'queue.dequeuebatchsize' => 1000,
+                'queue.saveonshutdown' => 'on',
+                'queue.timeoutenqueue' => 0,
+                'action.resumeRetryCount' => -1,
+            },
+            rules      => [
+                action => {
+                    name    => 'apachelogs',
+                    facility => "local6.*",
                     config => {
                         type    => 'omfwd',
                         target  => $syslog_remotehost,
