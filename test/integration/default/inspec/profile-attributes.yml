@@ -28,7 +28,8 @@ iptables_input_ports: [
   '-A INPUT -p icmp -m conntrack --ctstate RELATED,ESTABLISHED -m icmp --icmp-type 0 -m comment --comment "011 Allow icmp net unreachable- IN" -j ACCEPT'
 ]
 iptables_output_ports: [
-  '-A OUTPUT -p tcp -m multiport --dports 53 -m comment --comment "100 allow dns access - OUT" -j ACCEPT',
+  '-A OUTPUT -p udp -m multiport --dports 53 -m comment --comment "100 allow dns access - OUT" -j ACCEPT',
+  '-A OUTPUT -p tcp -m multiport --dports 53 -m comment --comment "100 allow dns tcp access - OUT" -j ACCEPT',
   '-A OUTPUT -p udp -m multiport --dports 123 -m comment --comment "101 allow ntp access - OUT" -j ACCEPT',
   '-A OUTPUT -p tcp -m multiport --dports 25 -m comment --comment "102 allow smtp access - OUT" -j ACCEPT',
 #  '-A OUTPUT -p tcp --dport 80 -j ACCEPT',
@@ -45,8 +46,8 @@ iptables_output_ports: [
   '-A OUTPUT -p icmp -m conntrack --ctstate NEW,RELATED,ESTABLISHED -m icmp --icmp-type 3 -m comment --comment "011 Allow icmp destination unreachable - OUT" -j ACCEPT'
 ]
 #sshd_valid_ciphers:
-sshd_valid_kexs: 'curve25519-sha256@libssh.org'
-sshd_valid_macs: 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com'
+sshd_valid_kexs: 'curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256'
+sshd_valid_macs: 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com'
 sshd_permittunnel: "no"
 sshd_tcpforwarding: "no"
 sshd_agentforwarding: "no"

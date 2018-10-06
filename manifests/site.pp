@@ -1,4 +1,21 @@
 
+# TODO: have minimum two
+  $resolvconf_nameservers = ['8.8.8.8', '8.8.4.4']
+  $resolvconf_domains = ['domain.tld', 'sub.domain.tld']
+# TODO: have minimum two
+  $ntp_servers = ['pool.ntp.org']
+  $lograte_days = 90
+  $syslog_remotehost = 'remotelogserver.name'
+  $syslog_remoteport = 514
+  $syslog_dest = "@@${syslog_remotehost}:${syslog_remoteport}"
+  #$syslog_dest = '/var/log/custom.log'
+  $postfix_myhostname = 'smtp3.systemadmin.es'
+  $postfix_selfsignedcert = '/C=UK/ST=Shropshire/L=Telford/O=systemadmin/CN=smtp3.systemadmin.es'
+  $postfix_relayhost = '1.2.3.4'
+  $postfix_alias_webmaster = [ 'root' ]
+  $postfix_alias_noc = [ 'root' ]
+  $postfix_alias_security = [ 'root' ]
+
   $pkgs_upgradeall = false
   $cbc_required          = false
   $weak_hmac             = false
@@ -46,7 +63,7 @@
       ]
 
       # kmod required for /etc/modprobe.d
-      $rpm_packages = ['kmod', 'iptables-services', 'perf', 'openscap-scanner', 'scap-security-guide', 'which', 'openssl' ]
+      $rpm_packages = ['kmod', 'iptables-services', 'perf', 'openscap-scanner', 'scap-security-guide', 'which', 'openssl', 'audit' ]
       $rpm_packages.each |String $pkg| {
         package { "${pkg}":
           provider => 'yum',
@@ -85,6 +102,18 @@
       class { 'epel': }
 #      class { 'rkhunter': }
 
+      if ($facts['lsbmajdistrelease'] == '7') {
+        package { "libpwquality":
+          provider => 'yum',
+          ensure   => 'present',
+        }
+        file_line { 'lippwquality: Set Password Minimum Length':
+          ensure => present,
+          path   => '/etc/security/pwquality.conf',
+          line   => 'minlen=15',
+          match  => '^minlen\=',
+        }
+      }
     }
     /^(Debian|Ubuntu)$/: {
 
@@ -93,7 +122,7 @@
         'sudo',
       ]
 
-      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables', 'iptables-persistent', 'libopenscap8', 'ifupdown2' ]
+      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables', 'iptables-persistent', 'libopenscap8', 'ifupdown2', 'auditd' ]
       $deb_packages.each |String $pkg| {
         package { "${pkg}":
           provider => 'apt',
@@ -114,14 +143,18 @@
 #    default:             { include role::generic } # Apply the generic class
   }
 
+  class { 'timezone':
+    timezone => 'UTC',
+  }
+
   class { '::resolvconf':
-    nameservers => ['8.8.8.8', '8.8.4.4'],
-    domains     => ['domain.tld', 'sub.domain.tld'],
+    nameservers => $resolvconf_nameservers,
+    domains     => $resolvconf_domains,
   }
 
   # no user option for puppetlabs/ntp
   class { 'ntp':
-    servers   => ['pool.ntp.org'],
+    servers   => $ntp_servers,
     restrict  => [
       'default ignore',
       '-6 default ignore',
@@ -138,6 +171,7 @@
     password_max_age => 182,
     password_min_age => 0,
     password_warn_age => 30,
+    ignore_users     => [ 'postfix' ],
   }
   file_line { 'Set Account Expiration Following Inactivity':
     ensure => present,
@@ -245,14 +279,69 @@
 # remote syslog
 #         remotesyslog => {
 #            key     => "*.*",
-#            value   => "@@remotelogserver.name",
-#            value   => "@@remotelogserver.name;FullTimeFormat",
-#            value   => "@@remotelogserver.name;RSYSLOG_SyslogProtocol23Format",
+#            value   => "${syslog_dest}",
+#            value   => "${syslog_dest};FullTimeFormat",
+#            value   => "${syslog_dest};RSYSLOG_SyslogProtocol23Format",
 #         }
     },
 # https://www.rsyslog.com/doc/v8-stable/tutorials/reliable_forwarding.html
 # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/s1-working_with_queues_in_rsyslog
     rulesets    => {
+        auditsyslog => {
+            parameters => {
+                'queue.filename' => 'QueueAudit',
+                'queue.type' => 'LinkedList',
+                'queue.spoolDirectory' => "/var/log/rsyslog/queue",
+                'queue.size' => 10000,
+                'queue.maxdiskspace' => '10G',
+                'queue.timeoutqueue' => 3,
+                'queue.dequeuebatchsize' => 1000,
+                'queue.saveonshutdown' => 'on',
+                'queue.timeoutenqueue' => 0,
+                'action.resumeRetryCount' => -1,
+            },
+            rules      => [
+                action => {
+                    name    => 'auditlogs',
+                    # match /etc/audisp/plugins.d/syslog.conf
+                    facility => "info.*",
+                    config => {
+                        type    => 'omfwd',
+                        target  => $syslog_remotehost,
+                        port    => $syslog_remoteport,
+                        protocol => 'tcp',
+                    },
+                }
+            ],
+            stop       => true,
+        },
+        osquerysyslog => {
+            parameters => {
+                'queue.filename' => 'QueueOsquery',
+                'queue.type' => 'LinkedList',
+                'queue.spoolDirectory' => "/var/log/rsyslog/queue",
+                'queue.size' => 10000,
+                'queue.maxdiskspace' => '10G',
+                'queue.timeoutqueue' => 3,
+                'queue.dequeuebatchsize' => 1000,
+                'queue.saveonshutdown' => 'on',
+                'queue.timeoutenqueue' => 0,
+                'action.resumeRetryCount' => -1,
+            },
+            rules      => [
+                action => {
+                    name    => 'osquerylogs',
+                    facility => "local3.*",
+                    config => {
+                        type    => 'omfwd',
+                        target  => $syslog_remotehost,
+                        port    => $syslog_remoteport,
+                        protocol => 'tcp',
+                    },
+                }
+            ],
+            stop       => true,
+        },
         remotesyslog => {
             parameters => {
                 'queue.filename' => 'QueueRemote',
@@ -272,13 +361,23 @@
                     facility => "*.*",
                     config => {
                         type    => 'omfwd',
-                        target  => 'remotelogserver.local',
-                        port    => 514,
+                        target  => $syslog_remotehost,
+                        port    => $syslog_remoteport,
                         protocol => 'tcp',
                     },
                 }
             ],
         }
+    }
+  }
+  class { '::logrotate':
+    ensure => 'latest',
+    config => {
+      dateext      => true,
+      compress     => true,
+      rotate       => $logrotate_days,
+      rotate_every => 'daily',
+      ifempty      => true,
     }
   }
 
@@ -287,10 +386,10 @@
     #inetinterfaces    => 'all',
     inetinterfaces    => 'loopback-only',
     mynetworks        => [ '127.0.0.1/32' ],
-    myhostname        => 'smtp3.systemadmin.es',
-    smtpdbanner       => 'smtp3.systemadmin.es ESMTP',
+    myhostname        => $postfix_myhostname,
+    smtpdbanner       => "${postfix_myhostname} ESMTP",
     opportunistictls  => true,
-    subjectselfsigned => '/C=UK/ST=Shropshire/L=Telford/O=systemadmin/CN=smtp3.systemadmin.es',
+    subjectselfsigned => $postfix_selfsignedcert,
     generatecert      => true,
     syslog_name       => 'private',
     add_default_smtpd_instance => false,
@@ -298,7 +397,7 @@
     readme_directory  => false,
     append_dot_mydomain => false,
     # smarthost
-    relayhost => '1.2.3.4',
+    relayhost => $postfix_relayhost,
   }
   postfix::instance { 'smtp':
     type    => 'unix',
@@ -310,7 +409,7 @@
       'smtpd_helo_restrictions'      => 'permit_mynetworks,reject_non_fqdn_helo_hostname,reject_invalid_helo_hostname,permit',
       'smtpd_sender_restrictions'    => 'permit_mynetworks,reject_non_fqdn_sender,reject_unknown_sender_domain,permit',
       'smtpd_recipient_restrictions' => 'permit_mynetworks,permit_sasl_authenticated,reject_unauth_destination,reject_unknown_recipient_domain,reject_rbl_client cbl.abuseat.org, reject_rbl_client b.barracudacentral.org,reject',
-      'mynetworks'                   => '127.0.0.0/8,10.0.2.15/32',
+      'mynetworks'                   => '127.0.0.0/8,10.0.0.0/8,192.168.0.0/16',
       'receive_override_options'     => 'no_header_body_checks',
 # FIXME! not applied
       'smtpd_helo_required'          => 'yes',
@@ -365,22 +464,22 @@
 
 # suggested, RFC2142. TODO: alias to your context
   postfix::vmail::alias { 'webmaster':
-    aliasto => [ 'root' ],
+    aliasto => $postfix_alias_webmaster,
   }
   postfix::vmail::alias { 'support':
-    aliasto => [ 'root' ],
+    aliasto => $postfix_alias_webmaster,
   }
   postfix::vmail::alias { 'noc':
-    aliasto => [ 'root' ],
+    aliasto => $postfix_alias_noc,
   }
   postfix::vmail::alias { 'abuse':
-    aliasto => [ 'root' ],
+    aliasto => $postfix_alias_security,
   }
   postfix::vmail::alias { 'security':
-    aliasto => [ 'root' ],
+    aliasto => $postfix_alias_security,
   }
   postfix::vmail::alias { 'soc':
-    aliasto => [ 'root' ],
+    aliasto => $postfix_alias_security,
   }
 
   file { '/etc/profile.d/security':
@@ -442,11 +541,24 @@ if !$facts['hypervisors']['docker'] {
     iniface => 'lo',
     action  => 'accept',
   }->
+  firewall { '001 accept all to lo interface (v6)':
+    proto   => 'all',
+    iniface => 'lo',
+    action  => 'accept',
+    provider => 'ip6tables',
+  }->
   firewall { '002 accept all from lo interface':
     chain    => 'OUTPUT',
     proto   => 'all',
     outiface => 'lo',
     action  => 'accept',
+  }->
+  firewall { '002 accept all from lo interface (v6)':
+    chain    => 'OUTPUT',
+    proto   => 'all',
+    outiface => 'lo',
+    action  => 'accept',
+    provider => 'ip6tables',
   }->
   firewall { '003 reject local traffic not on loopback interface':
     iniface     => '! lo',
@@ -454,11 +566,44 @@ if !$facts['hypervisors']['docker'] {
     source      => '127.0.0.0/8',
     action      => 'drop',
   }->
+  firewall { '003 reject local traffic not on loopback interface (v6)':
+    iniface     => '! lo',
+    proto       => 'all',
+    source      => '::1/128',
+    action      => 'drop',
+    provider    => 'ip6tables',
+  }->
   firewall { '004 accept related established rules':
     proto  => 'all',
     state  => ['RELATED', 'ESTABLISHED'],
     action => 'accept',
+  }->
+  firewall { '007 Allow Link-Local addresses (v6)':
+    chain       => [ 'INPUT', 'OUTPUT'],
+    proto       => 'all',
+    source      => 'fe80::/10',
+    action      => 'accept',
+    provider    => 'ip6tables',
+  }->
+  firewall { '008 Local DHCP - IN (v6)':
+    chain       => 'INPUT',
+    proto       => tcp,
+    source      => 'fe80::/10',
+    dport       => 546,
+    action      => 'accept',
+    state       => 'NEW',
+    provider    => 'ip6tables',
   }
+#  firewall { '008 Local DHCP - OUT (v6)':
+#    chain       => 'OUTPUT',
+#    proto       => udp,
+#    destination => '<IPV6_DHCP_SERVER>',
+#    sport       => 68,
+#    dport       => 67,
+#    action      => 'accept',
+#    state       => 'NEW',
+#    provider    => 'ip6tables',
+#  }
 }
 }
 
@@ -562,8 +707,28 @@ firewall { '011 Allow icmp destination unreachable - OUT':
 firewall { '100 allow dns access - OUT':
   chain  => 'OUTPUT',
   dport  => 53,
-  proto  => [tcp, udp],
+  proto  => udp,
   action => accept,
+}
+firewall { '100 allow dns tcp access - OUT':
+  chain  => 'OUTPUT',
+  dport  => 53,
+  proto  => tcp,
+  action => accept,
+}
+firewall { '100 allow dns access - OUT (v6)':
+  chain  => 'OUTPUT',
+  dport  => 53,
+  proto  => udp,
+  action => accept,
+  provider => 'ip6tables',
+}
+firewall { '100 allow dns tcp access - OUT (v6)':
+  chain  => 'OUTPUT',
+  dport  => 53,
+  proto  => tcp,
+  action => accept,
+  provider => 'ip6tables',
 }
 firewall { '101 allow ntp access - OUT':
   chain  => 'OUTPUT',
@@ -571,11 +736,25 @@ firewall { '101 allow ntp access - OUT':
   proto  => udp,
   action => accept,
 }
+firewall { '101 allow ntp access - OUT (v6)':
+  chain  => 'OUTPUT',
+  dport  => 123,
+  proto  => udp,
+  action => accept,
+  provider => 'ip6tables',
+}
 firewall { '102 allow smtp access - OUT':
   chain  => 'OUTPUT',
   dport  => 25,
   proto  => tcp,
   action => accept,
+}
+firewall { '102 allow smtp access - OUT (v6)':
+  chain  => 'OUTPUT',
+  dport  => 25,
+  proto  => tcp,
+  action => accept,
+  provider => 'ip6tables',
 }
 firewall { '110 allow http and https access - OUT':
   chain  => 'OUTPUT',
@@ -583,6 +762,42 @@ firewall { '110 allow http and https access - OUT':
   proto  => tcp,
   action => accept,
 }
+firewall { '110 allow http and https access - OUT (v6)':
+  chain  => 'OUTPUT',
+  dport  => [80, 443],
+  proto  => tcp,
+  action => accept,
+  provider => 'ip6tables',
+}
+firewallchain { 'INPUT:filter:IPv4':
+  ensure => present,
+  policy => drop,
+  before => undef,
+}
+firewallchain { 'OUTPUT:filter:IPv4':
+  ensure => present,
+  policy => drop,
+  before => undef,
+}
+firewallchain { 'FORWARD:filter:IPv4':
+  ensure => present,
+  policy => drop,
+  before => undef,
+}
+firewallchain { 'INPUT:filter:IPv6':
+  ensure => present,
+  policy => drop,
+  before => undef,
+}
+firewallchain { 'OUTPUT:filter:IPv6':
+  ensure => present,
+  policy => drop,
+  before => undef,
+}
+firewallchain { 'FORWARD:filter:IPv6':
+  ensure => present,
+  policy => drop,
+  before => undef,
 
 ## tomcat
 firewall { '051 Allow http traffic - IN':
@@ -612,3 +827,70 @@ firewall { '052 Allow https traffic - IN':
   provider => 'iptables',
 }
 } # if !$facts['hypervisors']['docker']
+
+class { '::telegraf':
+    hostname => $::hostname,
+    outputs  => {
+        'influxdb' => {
+            'urls'     => [ "http://influxdb0.${::domain}:8086", "http://influxdb1.${::domain}:8086" ],
+            'database' => 'telegraf',
+            'username' => 'telegraf',
+            'password' => 'metricsmetricsmetrics',
+            },
+        'graphite' => {
+            'server'   => [ "localhost:2003" ],
+            'prefix'   => 'telegraf',
+            'template' => 'host.tags.measurement.field',
+            'timeout'  => 2,
+            }
+        },
+    inputs   => {
+        'cpu' => {
+            'percpu'   => true,
+            'totalcpu' => true,
+        },
+        'mem' => {
+        # no configuration
+        },
+        'io' => {
+        },
+        'net' => {
+            'interfaces' => ["eth*", "enp0s*" ],
+        },
+        'disk' => {
+            'ignore_fs' => ["tmpfs", "devtmpfs", "devfs", "overlay", "aufs", "squashfs", "cgroup", "sysfs", "debugfs"],
+        },
+#        'diskio' => {
+#        },
+        'swap' => {
+        # no configuration
+        },
+        'system' => {
+        # no configuration
+        },
+        'kernel' => {
+        # no configuration
+        },
+        'kernel_vmstat' => {
+        # no configuration
+        },
+#        'interrupts' => {
+#            'irq' => [ "NET_RX", "TASKLET" ],
+#        },
+        # iptables: requires CAP_NET_ADMIN and CAP_NET_RAW capabilities for telegraf
+#        'iptables' => {
+#        },
+        # fail2ban: requires command access (root or sudo)
+#        'fail2ban' => {
+#           'use_sudo'  => true,
+#        },
+        'puppetagent' => {
+        # no configuration
+        },
+#        'sensors' => {
+#        },
+#        'apache' => {
+#        },
+
+    }
+}
