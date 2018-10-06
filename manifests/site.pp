@@ -719,3 +719,72 @@ firewallchain { 'FORWARD:filter:IPv6':
   before => undef,
 }
 } # if !$facts['hypervisors']['docker']
+
+class { '::telegraf':
+    hostname => $::hostname,
+    outputs  => {
+        'influxdb' => {
+            'urls'     => [ "http://influxdb0.${::domain}:8086", "http://influxdb1.${::domain}:8086" ],
+            'database' => 'telegraf',
+            'username' => 'telegraf',
+            'password' => 'metricsmetricsmetrics',
+            }
+        'graphite' => {
+            'server'   => [ "localhost:2003" ],
+            'prefix'   => 'telegraf',
+            'template' => 'host.tags.measurement.field',
+            'timeout'  => 2,
+            }
+        },
+    inputs   => {
+        'cpu' => {
+            'percpu'   => true,
+            'totalcpu' => true,
+        },
+        'mem' => {
+        # no configuration
+        },
+        'io' => {
+        },
+        'net' => {
+            'interfaces' => ["eth*", "enp0s*" ],
+        },
+        'disk' => {
+            'ignore_fs' => ["tmpfs", "devtmpfs", "devfs", "overlay", "aufs", "squashfs", "cgroup", "sysfs", "debugfs"],
+        },
+#        'diskio' => {
+#        },
+        'swap' => {
+        # no configuration
+        },
+        'system' => {
+        # no configuration
+        },
+        'kernel' => {
+        # no configuration
+        },
+        'kernel_vmstat' => {
+        # no configuration
+        },
+#        'interrupts' => {
+#            'irq' => [ "NET_RX", "TASKLET" ],
+#        },
+        # iptables: requires CAP_NET_ADMIN and CAP_NET_RAW capabilities for telegraf
+#        'iptables' => {
+#        },
+        # fail2ban: requires command access (root or sudo)
+#        'fail2ban' => {
+#           'use_sudo'  => true,
+#        },
+        'puppetagent' => {
+        # no configuration
+        },
+#        'sensors' => {
+#        },
+#        'apache' => {
+#        },
+    }
+}
+
+    }
+}
