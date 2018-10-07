@@ -23,6 +23,7 @@ m=modules
 [ ! -d $m/os_hardening ] && git clone https://github.com/dev-sec/puppet-os-hardening $m/os_hardening
 [ ! -d $m/ssh_hardening ] && git clone https://github.com/dev-sec/puppet-ssh-hardening $m/ssh_hardening
 [ ! -d $m/ssh ] && git clone https://github.com/saz/puppet-ssh $m/ssh
+[ ! -d $m/thias-sysctl ] && git clone https://github.com/thias/puppet-sysctl.git $m/sysctl
 [ ! -d $m/firewall ] && git clone https://github.com/puppetlabs/puppetlabs-firewall $m/firewall
 #[ ! -d $m/cisecurity ] && git clone https://github.com/cohdjn/cisecurity $m/cisecurity
 #[ ! -d $m/auditd ] && git clone https://github.com/kemra102/puppet-auditd.git $m/auditd
