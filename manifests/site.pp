@@ -13,6 +13,19 @@
     '0.asia.pool.ntp.org',
     '1.asia.pool.ntp.org'
     ]
+  $ntp_restrict = [
+      'default ignore',
+      '-6 default ignore',
+      '127.0.0.1',
+      '-6 ::1',
+      'pool.ntp.org nomodify notrap nopeer noquery',
+      '0.north-america.ntp.org nomodify notrap nopeer noquery',
+      '1.north-america.ntp.org nomodify notrap nopeer noquery',
+      '0.europe.pool.ntp.org nomodify notrap nopeer noquery',
+      '1.europe.pool.ntp.org nomodify notrap nopeer noquery',
+      '0.asia.pool.ntp.org nomodify notrap nopeer noquery',
+      '1.asia.pool.ntp.org nomodify notrap nopeer noquery'
+    ],
   $logrotate_days = 90
   $syslog_remotehost = 'remotelogserver.name'
   $syslog_remoteport = 514
@@ -227,13 +240,7 @@ session     required      pam_unix.so",
   # no user option for puppetlabs/ntp
   class { 'ntp':
     servers   => $ntp_servers,
-    restrict  => [
-      'default ignore',
-      '-6 default ignore',
-      '127.0.0.1',
-      '-6 ::1',
-      'pool.ntp.org nomodify notrap nopeer noquery',
-    ],
+    restrict  => $ntp_restrict,
   }
   class { 'fail2ban': }
   class { 'osquery': }
