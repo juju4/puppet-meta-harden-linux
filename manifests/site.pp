@@ -269,9 +269,9 @@ session     required      pam_unix.so",
   class { 'fail2ban': }
   class { 'osquery': }
 
-  $my_sysctl_settings.each |String $sysctl| {
-    sysctl { "${sysctl}":
-      value => $my_sysctl_settings[${sysctl}]['value'],
+  $my_sysctl_settings.each |Array $sysctl| {
+    sysctl { $sysctl[0]:
+      value => $sysctl[1]['value'],
     }
   }
 
