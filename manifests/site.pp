@@ -114,6 +114,63 @@
           match  => '^minlen\=',
         }
       }
+
+      # Set Deny For Failed Password Attempts - CCE-27350-8, CCE-26884-7
+      # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/security_guide/chap-hardening_your_system_with_tools_and_services#sect-Security_Guide-Workstation_Security-Account_Locking = Keeping Custom Settings with authconfig
+      file { '/etc/pam.d/password-auth-local':
+        ensure => present,
+        content => "#%PAM-1.0
+# This file is managed by puppet
+auth        required      pam_env.so
+auth        required      pam_faillock.so preauth silent even_deny_root deny=3 unlock_time=never fail_interval=900
+auth        sufficient    pam_unix.so try_first_pass nullok
+auth        [default=die] pam_faillock.so authfail even_deny_root deny=3 unlock_time=never fail_interval=900
+auth        required      pam_deny.so
+
+account     required      pam_faillock.so
+account     required      pam_unix.so
+
+password    requisite     pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type=
+password    sufficient    pam_unix.so try_first_pass use_authtok nullok sha512 shadow
+password    required      pam_deny.so
+
+session     optional      pam_keyinit.so revoke
+session     required      pam_limits.so
+-session     optional      pam_systemd.so
+session     [success=1 default=ignore] pam_succeed_if.so service in crond quiet use_uid
+session     required      pam_unix.so",
+      }
+      file { '/etc/pam.d/password-auth':
+        ensure => 'link',
+        force  => true,
+        target => '/etc/pam.d/password-auth-local',
+      }
+      # CCE-26923-3, CCE-27286-4
+      file { '/etc/pam.d/system-auth-local':
+        ensure => present,
+        content => "#%PAM-1.0
+# This file is managed by puppet
+auth        required      pam_env.so
+auth        sufficient    pam_unix.so try_first_pass
+auth        required      pam_deny.so
+
+account     required      pam_unix.so
+
+password    requisite     pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type=
+password    sufficient    pam_unix.so try_first_pass use_authtok sha512 shadow remember=5
+password    required      pam_deny.so
+
+session     optional      pam_keyinit.so revoke
+session     required      pam_limits.so
+-session     optional      pam_systemd.so
+session     [success=1 default=ignore] pam_succeed_if.so service in crond quiet use_uid
+session     required      pam_unix.so",
+      }
+      file { '/etc/pam.d/system-auth':
+        ensure => 'link',
+        force  => true,
+        target => '/etc/pam.d/system-auth-local',
+      }
     }
     /^(Debian|Ubuntu)$/: {
 
