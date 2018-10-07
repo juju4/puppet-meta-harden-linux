@@ -269,9 +269,12 @@ session     required      pam_unix.so",
   class { 'fail2ban': }
   class { 'osquery': }
 
-  sysctl::values { 'multiple':
-    args     => $my_sysctl_settings,
+  $my_sysctl_settings.each |String $sysctl| {
+    sysctl { "${sysctl}":
+      value => $my_sysctl_settings[${sysctl}]['value'],
+    }
   }
+
   class { 'os_hardening':
     umask => "077",
     password_max_age => 182,
