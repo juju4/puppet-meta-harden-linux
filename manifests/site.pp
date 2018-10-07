@@ -120,7 +120,7 @@
           ensure => present,
           path   => '/etc/security/pwquality.conf',
           line   => 'minlen=15',
-          match  => '^minlen\=',
+          match  => '^minlen=',
         }
       }
 
