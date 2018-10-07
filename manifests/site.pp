@@ -25,7 +25,7 @@
       '1.europe.pool.ntp.org nomodify notrap nopeer noquery',
       '0.asia.pool.ntp.org nomodify notrap nopeer noquery',
       '1.asia.pool.ntp.org nomodify notrap nopeer noquery'
-    ],
+    ]
   $logrotate_days = 90
   $syslog_remotehost = 'remotelogserver.name'
   $syslog_remoteport = 514
