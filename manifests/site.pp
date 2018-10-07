@@ -75,15 +75,10 @@
     'UseRoaming'                => 'no',
   }
   $my_sysctl_settings = {
-    "net.ipv4.ip_forward"          => { value => 0 },
-    "net.ipv6.conf.all.forwarding" => { value => 0 },
     'kernel.kptr_restrict'         => { value => 1 },
     'kernel.core_uses_pid'         => { value => 1 },
-# 2 - (suidsafe) - any binary which normally not be dumped is dumped readable by root only
-    'fs.suid_dumpable'             => { value => 2 },
 # general, but especially for containers
     'kernel.dmesg_restrict'        => { value => 1 },
-    'kernel.randomize_va_space'    => { value => 2 },
     'fs.protected_symlinks'        => { value => 1 },
     'fs.protected_hardlinks'       => { value => 1 },
     'vm.mmap_min_addr'             => { value => 65536 },
