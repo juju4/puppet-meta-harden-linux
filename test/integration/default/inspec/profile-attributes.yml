@@ -54,5 +54,5 @@ sshd_agentforwarding: "no"
 sshd_gatewayports: "no"
 sshd_x11forwarding: "no"
 sshd_banner: "/etc/issue.net"
-ntp_package: 'ntpd'
+ntp_package: 'ntp'
 ntp_servers: [ 'pool.ntp.org' ]
