@@ -2,8 +2,17 @@
 # TODO: have minimum two
   $resolvconf_nameservers = ['8.8.8.8', '8.8.4.4']
   $resolvconf_domains = ['domain.tld', 'sub.domain.tld']
-# TODO: have minimum two
-  $ntp_servers = ['pool.ntp.org']
+# TODO: have minimum three
+# https://access.redhat.com/solutions/58025
+# https://insights.sei.cmu.edu/sei_blog/2017/04/best-practices-for-ntp-services.html
+  $ntp_servers = [ 'pool.ntp.org',
+    '0.north-america.ntp.org',
+    '1.north-america.ntp.org',
+    '0.europe.pool.ntp.org',
+    '1.europe.pool.ntp.org',
+    '0.asia.pool.ntp.org',
+    '1.asia.pool.ntp.org'
+    ]
   $logrotate_days = 90
   $syslog_remotehost = 'remotelogserver.name'
   $syslog_remoteport = 514

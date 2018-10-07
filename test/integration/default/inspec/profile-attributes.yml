@@ -55,4 +55,11 @@ sshd_gatewayports: "no"
 sshd_x11forwarding: "no"
 sshd_banner: "/etc/issue.net"
 ntp_package: 'ntp'
-ntp_servers: [ 'pool.ntp.org' ]
+ntp_servers: [ 'pool.ntp.org',
+  '0.north-america.ntp.org',
+  '1.north-america.ntp.org',
+  '0.europe.pool.ntp.org',
+  '1.europe.pool.ntp.org',
+  '0.asia.pool.ntp.org',
+  '1.asia.pool.ntp.org'
+  ]
