@@ -2,8 +2,30 @@
 # TODO: have minimum two
   $resolvconf_nameservers = ['8.8.8.8', '8.8.4.4']
   $resolvconf_domains = ['domain.tld', 'sub.domain.tld']
-# TODO: have minimum two
-  $ntp_servers = ['pool.ntp.org']
+# TODO: have minimum three
+# https://access.redhat.com/solutions/58025
+# https://insights.sei.cmu.edu/sei_blog/2017/04/best-practices-for-ntp-services.html
+  $ntp_servers = [ 'pool.ntp.org',
+    '0.north-america.ntp.org',
+    '1.north-america.ntp.org',
+    '0.europe.pool.ntp.org',
+    '1.europe.pool.ntp.org',
+    '0.asia.pool.ntp.org',
+    '1.asia.pool.ntp.org'
+    ]
+  $ntp_restrict = [
+      'default ignore',
+      '-6 default ignore',
+      '127.0.0.1',
+      '-6 ::1',
+      'pool.ntp.org nomodify notrap nopeer noquery',
+      '0.north-america.ntp.org nomodify notrap nopeer noquery',
+      '1.north-america.ntp.org nomodify notrap nopeer noquery',
+      '0.europe.pool.ntp.org nomodify notrap nopeer noquery',
+      '1.europe.pool.ntp.org nomodify notrap nopeer noquery',
+      '0.asia.pool.ntp.org nomodify notrap nopeer noquery',
+      '1.asia.pool.ntp.org nomodify notrap nopeer noquery'
+    ]
   $logrotate_days = 90
   $syslog_remotehost = 'remotelogserver.name'
   $syslog_remoteport = 514
@@ -51,6 +73,26 @@
     'Ciphers'                   => 'chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr',
     'MACs'                      => 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256',
     'UseRoaming'                => 'no',
+  }
+  $my_sysctl_settings = {
+    'kernel.kptr_restrict'         => { value => 1 },
+    'kernel.core_uses_pid'         => { value => 1 },
+# general, but especially for containers
+    'kernel.dmesg_restrict'        => { value => 1 },
+    'fs.protected_symlinks'        => { value => 1 },
+    'fs.protected_hardlinks'       => { value => 1 },
+    'vm.mmap_min_addr'             => { value => 65536 },
+    'kernel.pid_max'               => { value => 65536 },
+# restrict access to perf subsystem
+    'kernel.perf_event_paranoid' => { value => 2 },
+    'kernel.perf_event_max_sample_rate' => { value => 1 },
+    'kernel.perf_cpu_time_max_percent' => { value => 1 },
+# https://kernsec.org/wiki/index.php/Kernel_Self_Protection_Project/Recommended_Settings
+    'kernel.kexec_load_disabled'   => { value => 1 },
+    'user.max_user_namespaces'     => { value => 0 },
+# depending on kernel. (centos7 nok)
+#    'kernel.unprivileged_bpf_disabled' => { value => 1 },
+#    'net.core.bpf_jit_harden'      => { value => 2 },
   }
 
   case $facts['os']['name'] {
@@ -112,8 +154,70 @@
           ensure => present,
           path   => '/etc/security/pwquality.conf',
           line   => 'minlen=15',
-          match  => '^minlen\=',
+          match  => '^minlen=',
         }
+      }
+
+      # Set Deny For Failed Password Attempts - CCE-27350-8, CCE-26884-7
+      # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/security_guide/chap-hardening_your_system_with_tools_and_services#sect-Security_Guide-Workstation_Security-Account_Locking = Keeping Custom Settings with authconfig
+      file { '/etc/pam.d/password-auth-local':
+        ensure => present,
+        content => "#%PAM-1.0
+# /etc/pam.d/password-auth-local
+# This file is managed by puppet
+auth        required      pam_env.so
+auth        required      pam_faillock.so preauth silent even_deny_root deny=3 unlock_time=never fail_interval=900
+auth        sufficient    pam_unix.so try_first_pass nullok
+auth        [default=die] pam_faillock.so authfail even_deny_root deny=3 unlock_time=never fail_interval=900
+auth        required      pam_deny.so
+
+account     required      pam_faillock.so
+account     required      pam_unix.so
+
+password    requisite     pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type=
+password    sufficient    pam_unix.so try_first_pass use_authtok nullok sha512 shadow
+password    required      pam_deny.so
+
+session     optional      pam_keyinit.so revoke
+session     required      pam_limits.so
+-session     optional      pam_systemd.so
+session     [success=1 default=ignore] pam_succeed_if.so service in crond quiet use_uid
+session     required      pam_unix.so",
+      }
+      file { '/etc/pam.d/password-auth':
+        ensure => 'link',
+        force  => true,
+        target => '/etc/pam.d/password-auth-local',
+      }
+      # CCE-26923-3, CCE-27286-4
+      file { '/etc/pam.d/system-auth-local':
+        ensure => present,
+        content => "#%PAM-1.0
+# /etc/pam.d/system-auth-local
+# This file is managed by puppet
+auth        required      pam_env.so
+auth        required      pam_faillock.so preauth silent even_deny_root deny=3 unlock_time=never fail_interval=900
+auth        sufficient    pam_unix.so try_first_pass
+auth        [default=die] pam_faillock.so authfail even_deny_root deny=3 unlock_time=never fail_interval=900
+auth        required      pam_deny.so
+
+account     required      pam_faillock.so
+account     required      pam_unix.so
+
+password    requisite     pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type=
+password    sufficient    pam_unix.so try_first_pass use_authtok sha512 shadow remember=5
+password    required      pam_deny.so
+
+session     optional      pam_keyinit.so revoke
+session     required      pam_limits.so
+-session     optional      pam_systemd.so
+session     [success=1 default=ignore] pam_succeed_if.so service in crond quiet use_uid
+session     required      pam_unix.so",
+      }
+      file { '/etc/pam.d/system-auth':
+        ensure => 'link',
+        force  => true,
+        target => '/etc/pam.d/system-auth-local',
       }
     }
     /^(Debian|Ubuntu)$/: {
@@ -124,7 +228,8 @@
       ]
       $apache_logdir = '/var/log/apache2'
 
-      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables', 'iptables-persistent', 'libopenscap8', 'ifupdown2', 'auditd' ]
+      #$deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables', 'iptables-persistent', 'libopenscap8', 'ifupdown2', 'auditd' ]
+      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables', 'iptables-persistent', 'libopenscap8', 'ifupdown2' ]
       $deb_packages.each |String $pkg| {
         package { "${pkg}":
           provider => 'apt',
@@ -157,16 +262,16 @@
   # no user option for puppetlabs/ntp
   class { 'ntp':
     servers   => $ntp_servers,
-    restrict  => [
-      'default ignore',
-      '-6 default ignore',
-      '127.0.0.1',
-      '-6 ::1',
-      'pool.ntp.org nomodify notrap nopeer noquery',
-    ],
+    restrict  => $ntp_restrict,
   }
   class { 'fail2ban': }
   class { 'osquery': }
+
+  $my_sysctl_settings.each |Array $sysctl| {
+    sysctl { $sysctl[0]:
+      value => $sysctl[1]['value'],
+    }
+  }
 
   class { 'os_hardening':
     umask => "077",
