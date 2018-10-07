@@ -74,6 +74,30 @@
     'MACs'                      => 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256',
     'UseRoaming'                => 'no',
   }
+  $my_sysctl_settings = {
+    "net.ipv4.ip_forward"          => { value => 0 },
+    "net.ipv6.conf.all.forwarding" => { value => 0 },
+    'kernel.kptr_restrict'         => { value => 1 },
+    'kernel.core_uses_pid'         => { value => 1 },
+# 2 - (suidsafe) - any binary which normally not be dumped is dumped readable by root only
+    'fs.suid_dumpable'             => { value => 2 },
+# general, but especially for containers
+    'kernel.dmesg_restrict'        => { value => 1 },
+    'kernel.randomize_va_space'    => { value => 2 },
+    'fs.protected_symlinks'        => { value => 1 },
+    'fs.protected_hardlinks'       => { value => 1 },
+    'vm.mmap_min_addr'             => { value => 65536 },
+    'kernel.pid_max'               => { value => 65536 },
+# restrict access to perf subsystem
+    'kernel.perf_event_paranoid' => { value => 2 },
+    'kernel.perf_event_max_sample_rate' => { value => 1 },
+    'kernel.perf_cpu_time_max_percent' => { value => 1 },
+# https://kernsec.org/wiki/index.php/Kernel_Self_Protection_Project/Recommended_Settings
+    'kernel.kexec_load_disabled'   => { value => 1 },
+    'user.max_user_namespaces'     => { value => 0 },
+    'kernel.unprivileged_bpf_disabled' => { value => 1 },
+    'net.core.bpf_jit_harden'      => { value => 2 },
+  }
 
   case $facts['os']['name'] {
 #    'Solaris':           { include role::solaris } # Apply the solaris class
@@ -245,6 +269,9 @@ session     required      pam_unix.so",
   class { 'fail2ban': }
   class { 'osquery': }
 
+  sysctl::values { 'multiple':
+    args     => $my_sysctl_settings,
+  }
   class { 'os_hardening':
     umask => "077",
     password_max_age => 182,
