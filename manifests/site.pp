@@ -90,8 +90,9 @@
 # https://kernsec.org/wiki/index.php/Kernel_Self_Protection_Project/Recommended_Settings
     'kernel.kexec_load_disabled'   => { value => 1 },
     'user.max_user_namespaces'     => { value => 0 },
-    'kernel.unprivileged_bpf_disabled' => { value => 1 },
-    'net.core.bpf_jit_harden'      => { value => 2 },
+# depending on kernel. (centos7 nok)
+#    'kernel.unprivileged_bpf_disabled' => { value => 1 },
+#    'net.core.bpf_jit_harden'      => { value => 2 },
   }
 
   case $facts['os']['name'] {
