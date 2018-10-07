@@ -129,6 +129,7 @@
       file { '/etc/pam.d/password-auth-local':
         ensure => present,
         content => "#%PAM-1.0
+# /etc/pam.d/password-auth-local
 # This file is managed by puppet
 auth        required      pam_env.so
 auth        required      pam_faillock.so preauth silent even_deny_root deny=3 unlock_time=never fail_interval=900
@@ -158,11 +159,15 @@ session     required      pam_unix.so",
       file { '/etc/pam.d/system-auth-local':
         ensure => present,
         content => "#%PAM-1.0
+# /etc/pam.d/system-auth-local
 # This file is managed by puppet
 auth        required      pam_env.so
+auth        required      pam_faillock.so preauth silent even_deny_root deny=3 unlock_time=never fail_interval=900
 auth        sufficient    pam_unix.so try_first_pass
+auth        [default=die] pam_faillock.so authfail even_deny_root deny=3 unlock_time=never fail_interval=900
 auth        required      pam_deny.so
 
+account     required      pam_faillock.so
 account     required      pam_unix.so
 
 password    requisite     pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type=
