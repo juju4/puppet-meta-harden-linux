@@ -544,6 +544,18 @@ session     required      pam_unix.so",
     manage_mastercf   => false,
     readme_directory  => false,
     append_dot_mydomain => false,
+    smtpd_helo_required => true,
+    disable_vrfy_command => true,
+    smtp_sasl_auth_enable => true,
+    smtpd_sasl_auth_enable => true,
+    smtpd_use_tls     => true,
+    smtpd_tls_protocols => [ '!SSLv2', '!SSLv3', '!TLSv1', '!TLSv1.1' ],
+    smtp_use_tls      => true,
+    smtp_tls_exclude_ciphers => [ 'aNULL', 'eNULL', 'EXP', 'MD5', 'IDEA', 'KRB5', 'RC2', 'SEED', 'SRP' ],
+    # For internet/public-facing system
+    #smtp_tls_exclude_ciphers => [ 'EXPORT', 'LOW' ],
+    smtpd_tls_mandatory_ciphers => 'medium',
+    tls_medium_cipherlist => [ 'AES128+EECDH', 'AES128+EDH' ],
     # smarthost
     relayhost => $postfix_relayhost,
   }
