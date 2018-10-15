@@ -6,8 +6,8 @@
 # https://access.redhat.com/solutions/58025
 # https://insights.sei.cmu.edu/sei_blog/2017/04/best-practices-for-ntp-services.html
   $ntp_servers = [ 'pool.ntp.org',
-    '0.north-america.ntp.org',
-    '1.north-america.ntp.org',
+    '0.north-america.pool.ntp.org',
+    '1.north-america.pool.ntp.org',
     '0.europe.pool.ntp.org',
     '1.europe.pool.ntp.org',
     '0.asia.pool.ntp.org',
@@ -18,13 +18,6 @@
       '-6 default ignore',
       '127.0.0.1',
       '-6 ::1',
-      'pool.ntp.org nomodify notrap nopeer noquery',
-      '0.north-america.ntp.org nomodify notrap nopeer noquery',
-      '1.north-america.ntp.org nomodify notrap nopeer noquery',
-      '0.europe.pool.ntp.org nomodify notrap nopeer noquery',
-      '1.europe.pool.ntp.org nomodify notrap nopeer noquery',
-      '0.asia.pool.ntp.org nomodify notrap nopeer noquery',
-      '1.asia.pool.ntp.org nomodify notrap nopeer noquery'
     ]
   $logrotate_days = 90
   $syslog_remotehost = 'remotelogserver.name'
