@@ -46,3 +46,4 @@ m=modules
 [ ! -d $m/timezone ] && git clone https://github.com/saz/puppet-timezone.git $m/timezone
 [ ! -d $m/debconf ] && git clone https://github.com/smoeding/puppet-debconf.git $m/debconf
 [ ! -d $m/logrotate ] && git clone https://github.com/voxpupuli/puppet-logrotate.git $m/logrotate
+[ ! -d $m/selinux ] && git clone https://github.com/voxpupuli/puppet-selinux.git $m/selinux
