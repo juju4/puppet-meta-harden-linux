@@ -151,6 +151,15 @@
         }
       }
 
+      if ($syslog_remoteport != 514) {
+        selinux::port { "allow-syslog-${syslog_remoteport}":
+          ensure   => 'present',
+          seltype  => 'syslogd_port_t',
+          protocol => 'tcp',
+          port     => $syslog_remoteport,
+        }
+      }
+
       # Set Deny For Failed Password Attempts - CCE-27350-8, CCE-26884-7
       # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/security_guide/chap-hardening_your_system_with_tools_and_services#sect-Security_Guide-Workstation_Security-Account_Locking = Keeping Custom Settings with authconfig
       file { '/etc/pam.d/password-auth-local':
