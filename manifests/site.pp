@@ -111,7 +111,7 @@
       $rpm_remove.each |String $pkg| {
         package { "${pkg}":
           provider => 'yum',
-          ensure   => 'present',
+          ensure   => 'purged',
         }
       }
 
@@ -267,7 +267,7 @@ session     required      pam_unix.so",
     restrict  => $ntp_restrict,
   }
   class { 'fail2ban': }
-  class { 'osquery': }
+#  class { 'osquery': }
 
   $my_sysctl_settings.each |Array $sysctl| {
     sysctl { $sysctl[0]:
