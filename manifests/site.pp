@@ -110,7 +110,7 @@
       $rpm_remove.each |String $pkg| {
         package { "${pkg}":
           provider => 'yum',
-          ensure   => 'present',
+          ensure   => 'purged',
         }
       }
 
