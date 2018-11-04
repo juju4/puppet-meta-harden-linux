@@ -10,6 +10,20 @@ case $facts['os']['name'] {
       $ssl_privatedir = '/etc/pki/tls/private'
       $policycoreutils = 'policycoreutils-python'
 
+      # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/resource_management_guide/sec-cpuset
+      # https://developers.redhat.com/blog/2015/09/21/controlling-resources-with-cgroups-for-performance-testing/
+      class cgroups::groups { "tomcat":
+        controllers => {
+          cpuset => {
+            "cpuset.cpus" => "0,1",
+            "cpuset.mems" => "0",
+          },
+          memory => {
+            "memory.limit_in_bytes" => "4G";
+          },
+        },
+      }
+
     }
     /^(Debian|Ubuntu)$/: {
 
