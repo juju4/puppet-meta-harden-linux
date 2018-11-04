@@ -28,6 +28,7 @@ mod 'justinjl-smarthost'
 mod 'suchpuppet-resolvconf'
 mod 'saz-timezone'
 mod 'stm-debconf'
+mod 'ericsson-cgroups'
 
 # tomcat
 mod 'puppet-archive', '2.3.0'

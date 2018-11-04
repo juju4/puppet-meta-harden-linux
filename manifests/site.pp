@@ -137,6 +137,7 @@
 
       class { 'epel': }
 #      class { 'rkhunter': }
+      include ::cgroups
 
       if ($facts['lsbmajdistrelease'] == '7') {
         package { "libpwquality":

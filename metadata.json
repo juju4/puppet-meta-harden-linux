@@ -28,6 +28,7 @@
     {"name":"suchpuppet/resolvconf","version_requirement":">= 0.1.0 < 6.0.0"},
     {"name":"stm/debconf","version_requirement":">= 2.2.1 < 6.0.0"},
     {"name":"saz/timezone","version_requirement":">= 5.0.2 < 6.0.0"},
+    {"name":"ericsson/cgroups","version_requirement":">= 2.1.1 < 6.0.0"},
     {"name":"ouroboros8/telegraf","version_requirement":">= 2.0.1 < 6.0.0"},
     {"name":"puppet/archive","version_requirement":">= 2.3.0 < 3.0.0"},
     {"name":"puppetlabs/java","version_requirement":">= 3.1.0 < 6.0.0"},
