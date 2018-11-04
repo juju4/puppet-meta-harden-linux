@@ -136,6 +136,7 @@
 
       class { 'epel': }
 #      class { 'rkhunter': }
+      include ::cgroups
 
       if ($facts['lsbmajdistrelease'] == '7') {
         package { "libpwquality":
@@ -316,7 +317,6 @@ session     required      pam_unix.so",
 #    class { '::cisecurity': }
 
 #  include ::auditd
-  include ::cgroups
 
   # FIXME! missing ActionResumeRetryCount, ActionQueueTimeoutEnqueue, ActionQueueSaveOnShutdown
   class { 'rsyslog::server':
