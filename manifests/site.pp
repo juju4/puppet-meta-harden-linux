@@ -622,7 +622,9 @@ session     required      pam_unix.so",
       },
   }
 
-  class { 'postfix::vmail': }
+  class { 'postfix::vmail':
+    setup_dovecot => false,
+  }
 
 # suggested, RFC2142. TODO: alias to your context
   postfix::vmail::alias { 'webmaster':
