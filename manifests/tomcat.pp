@@ -148,6 +148,8 @@ service {'tomcat9':
   ensure    => 'running',
   enable    => true,
   subscribe => File['/etc/systemd/system/tomcat9.service'],
+#  require   => Class['tomcat'],
+  require   => File['/opt/tomcat9/lib/org/apache/catalina/util/ServerInfo.properties'],
 }
 
 package { "${policycoreutils}":
