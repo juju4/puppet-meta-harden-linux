@@ -106,11 +106,12 @@ Environment=CATALINA_PID=/opt/tomcat9/temp/tomcat.pid
 Environment=CATALINA_HOME=/opt/tomcat9
 Environment=CATALINA_BASE=/opt/tomcat9
 Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
-Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
+Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/urandom'
 WorkingDirectory=/opt/tomcat9
 
-ExecStart=/opt/tomcat9/bin/startup.sh
-ExecStop=/bin/kill -15 \$MAINPID
+ExecStart=/opt/tomcat9/bin/catalina.sh start
+ExecStop=/opt/tomcat9/bin/catalina.sh stop
+#ExecStop=/bin/kill -TERM \$MAINPID
 
 User=tomcat
 Group=tomcat
@@ -140,6 +141,7 @@ WantedBy=multi-user.target",
 
 service {'tomcat9':
   ensure    => 'running',
+  enable    => true,
   subscribe => File['/usr/lib/systemd/system/tomcat9.service'],
 }
 
