@@ -12,7 +12,7 @@ case $facts['os']['name'] {
 
       # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/resource_management_guide/sec-cpuset
       # https://developers.redhat.com/blog/2015/09/21/controlling-resources-with-cgroups-for-performance-testing/
-      cgroups::groups { "tomcat":
+      class cgroups::groups { "tomcat":
         controllers => {
           cpuset => {
             "cpuset.cpus" => "0,1",
