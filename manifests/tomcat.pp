@@ -88,7 +88,7 @@ Class['tomcat'] ~> File_line['tomcat-disable-autodeploy']
 
 include systemd::systemctl::daemon_reload
 
-file { '/usr/lib/systemd/system/tomcat9.service':
+file { '/etc/systemd/system/tomcat9.service':
   ensure => file,
   owner  => 'root',
   group  => 'root',
@@ -147,7 +147,7 @@ WantedBy=multi-user.target",
 service {'tomcat9':
   ensure    => 'running',
   enable    => true,
-  subscribe => File['/usr/lib/systemd/system/tomcat9.service'],
+  subscribe => File['/etc/systemd/system/tomcat9.service'],
 }
 
 package { "${policycoreutils}":
