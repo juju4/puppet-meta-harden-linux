@@ -133,6 +133,11 @@ MemoryLimit=8G
 PrivateTmp=yes
 InaccessibleDirectories=/home
 ReadOnlyDirectories=/var
+NoNewPrivileges=yes
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectSystem=full
+RestrictRealtime=true
 
 [Install]
 WantedBy=multi-user.target",
