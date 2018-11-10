@@ -9,6 +9,7 @@ case $facts['os']['name'] {
       $ssl_dir = '/etc/pki/tls/certs'
       $ssl_privatedir = '/etc/pki/tls/private'
       $policycoreutils = 'policycoreutils-python'
+      $jvm_path = '/usr/lib/jvm/java'
 
     }
     /^(Debian|Ubuntu)$/: {
@@ -16,6 +17,15 @@ case $facts['os']['name'] {
       $ssl_dir = '/etc/ssl'
       $ssl_privatedir = '/etc/ssl/private'
       $policycoreutils = 'policycoreutils-python-utils'
+
+      case $operatingsystemrelease {
+        /^18.*/: {
+            $jvm_path = '/usr/lib/jvm/java-11-openjdk-amd64'
+        }
+        /^16.*/: {
+            $jvm_path = '/usr/lib/jvm/java-8-openjdk-amd64'
+        }
+      }
 
     }
 #    default:             { include role::generic } # Apply the generic class
@@ -101,7 +111,7 @@ After=syslog.target network.target
 [Service]
 Type=forking
 
-Environment=JAVA_HOME=/usr/lib/jvm/java/
+Environment=JAVA_HOME=${jvm_path}
 Environment=CATALINA_PID=/opt/tomcat9/temp/tomcat.pid
 Environment=CATALINA_HOME=/opt/tomcat9
 Environment=CATALINA_BASE=/opt/tomcat9
