@@ -19,7 +19,7 @@ case $facts['os']['name'] {
             "cpuset.mems" => "0",
           },
           memory => {
-            "memory.limit_in_bytes" => "4G";
+            "memory.limit_in_bytes" => "4G",
           },
         },
       }
