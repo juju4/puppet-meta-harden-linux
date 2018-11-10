@@ -86,6 +86,8 @@ Class['tomcat'] ~> File['/opt/tomcat9/webapps/host-manager']
 Class['tomcat'] ~> File['/opt/tomcat9/webapps/manager']
 Class['tomcat'] ~> File_line['tomcat-disable-autodeploy']
 
+include systemd::systemctl::daemon_reload
+
 file { '/usr/lib/systemd/system/tomcat9.service':
   ensure => file,
   owner  => 'root',
