@@ -27,10 +27,6 @@ tomcat::install { '/opt/tomcat9':
   source_url => 'https://www.apache.org/dist/tomcat/tomcat-9/v9.0.12/bin/apache-tomcat-9.0.12.tar.gz',
   require    => Class['java'],
 }
-tomcat::instance { 'default':
-  catalina_home => '/opt/tomcat9',
-  require       => Class['tomcat'],
-}
 # https://tomcat.apache.org/tomcat-9.0-doc/security-howto.html
 tomcat::config::server::connector { 'tomcat9-signature':
   catalina_base         => '/opt/tomcat9',
@@ -89,6 +85,61 @@ Class['tomcat'] ~> File['/opt/tomcat9/webapps/examples']
 Class['tomcat'] ~> File['/opt/tomcat9/webapps/host-manager']
 Class['tomcat'] ~> File['/opt/tomcat9/webapps/manager']
 Class['tomcat'] ~> File_line['tomcat-disable-autodeploy']
+
+file { '/usr/lib/systemd/system/tomcat9.service':
+  ensure => file,
+  owner  => 'root',
+  group  => 'root',
+  mode   => '0644',
+#  source => "puppet:///modules/${module_name}/foo.service",
+  content => "[Unit]
+Description=Apache Tomcat Web Application Container
+After=syslog.target network.target
+
+[Service]
+Type=forking
+
+Environment=JAVA_HOME=/usr/lib/jvm/java/
+Environment=CATALINA_PID=/opt/tomcat9/temp/tomcat.pid
+Environment=CATALINA_HOME=/opt/tomcat9
+Environment=CATALINA_BASE=/opt/tomcat9
+Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
+Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
+WorkingDirectory=/opt/tomcat9
+
+ExecStart=/opt/tomcat9/bin/startup.sh
+ExecStop=/bin/kill -15 $MAINPID
+
+User=tomcat
+Group=tomcat
+UMask=0007
+RestartSec=10
+Restart=always
+TimeoutStartSec=240
+TimeoutStopSec=240
+
+# if privileged port
+#AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+# cgroups
+CPUQuota=60%
+MemoryLimit=8G
+
+# security
+# http://0pointer.de/blog/projects/security.html
+PrivateTmp=yes
+InaccessibleDirectories=/home
+ReadOnlyDirectories=/var
+
+[Install]
+WantedBy=multi-user.target",
+}
+~> Class['systemd::systemctl::daemon_reload']
+
+service {'tomcat9':
+  ensure    => 'running',
+  subscribe => File['/usr/lib/systemd/system/tomcat9.service'],
+}
 
 package { "${policycoreutils}":
   ensure => installed,
