@@ -316,7 +316,6 @@ session     required      pam_unix.so",
 #    class { '::cisecurity': }
 
 #  include ::auditd
-  include ::cgroups
 
   # FIXME! missing ActionResumeRetryCount, ActionQueueTimeoutEnqueue, ActionQueueSaveOnShutdown
   class { 'rsyslog::server':
