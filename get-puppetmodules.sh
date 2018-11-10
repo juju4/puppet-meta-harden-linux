@@ -54,3 +54,4 @@ m=modules
 [ ! -d $m/java ] && git clone https://github.com/puppetlabs/puppetlabs-java.git $m/java
 [ ! -d $m/tomcat ] && git clone https://github.com/puppetlabs/puppetlabs-tomcat.git $m/tomcat
 [ ! -d $m/apache ] && git clone https://github.com/puppetlabs/puppetlabs-apache.git $m/apache
+[ ! -d $m/systemd ] && git clone https://github.com/camptocamp/puppet-systemd.git $m/systemd
