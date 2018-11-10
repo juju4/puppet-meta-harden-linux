@@ -108,7 +108,7 @@ Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./
 WorkingDirectory=/opt/tomcat9
 
 ExecStart=/opt/tomcat9/bin/startup.sh
-ExecStop=/bin/kill -15 $MAINPID
+ExecStop=/bin/kill -15 \$MAINPID
 
 User=tomcat
 Group=tomcat
