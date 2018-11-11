@@ -137,7 +137,6 @@
 
       class { 'epel': }
 #      class { 'rkhunter': }
-      include ::cgroups
 
       if ($facts['lsbmajdistrelease'] == '7') {
         package { "libpwquality":
@@ -232,7 +231,7 @@ session     required      pam_unix.so",
       $apache_logdir = '/var/log/apache2'
 
       #$deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables', 'iptables-persistent', 'libopenscap8', 'ifupdown2', 'auditd' ]
-      $deb_packages = ['apt-transport-https', 'apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables', 'iptables-persistent', 'libopenscap8', 'ifupdown2' ]
+      $deb_packages = ['apt-utils', 'dpkg', 'libc-bin', 'kmod', 'iptables', 'iptables-persistent', 'libopenscap8', 'ifupdown2' ]
       $deb_packages.each |String $pkg| {
         package { "${pkg}":
           provider => 'apt',
@@ -268,7 +267,7 @@ session     required      pam_unix.so",
     restrict  => $ntp_restrict,
   }
   class { 'fail2ban': }
-#  class { 'osquery': }
+  class { 'osquery': }
 
   $my_sysctl_settings.each |Array $sysctl| {
     sysctl { $sysctl[0]:
@@ -549,7 +548,8 @@ session     required      pam_unix.so",
     append_dot_mydomain => false,
     smtpd_helo_required => true,
     disable_vrfy_command => true,
-    smtp_sasl_auth_enable => true,
+# requires smtp_sasl_password_maps
+    smtp_sasl_auth_enable => false,
     smtpd_sasl_auth_enable => true,
     smtpd_use_tls     => true,
     smtpd_tls_protocols => [ '!SSLv2', '!SSLv3', '!TLSv1', '!TLSv1.1' ],
