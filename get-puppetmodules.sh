@@ -37,7 +37,7 @@ m=modules
 [ ! -d $m/fail2ban ] && git clone https://github.com/voxpupuli/puppet-fail2ban.git $m/fail2ban
 [ ! -d $m/extlib ] && git clone https://github.com/voxpupuli/puppet-extlib.git $m/extlib --branch v2.3.1
 [ ! -d $m/rkhunter ] && git clone https://github.com/itmanagerro/puppet-rkhunter.git $m/rkhunter
-[ ! -d $m/telegraf ] && git clone https://github.com/ouroboros8/puppet-telegraf.git $m/telegraf
+[ ! -d $m/telegraf ] && git clone https://github.com/voxpupuli/puppet-telegraf.git $m/telegraf
 [ ! -d $m/postfix ] && git clone https://github.com/NTTCom-MS/eyp-postfix.git $m/postfix
 [ ! -d $m/eyplib ] && git clone https://github.com/NTTCom-MS/eyp-eyplib.git $m/eyplib
 [ ! -d $m/dovecot ] && git clone https://github.com/NTTCom-MS/eyp-dovecot.git $m/dovecot
