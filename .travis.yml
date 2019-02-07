@@ -86,6 +86,11 @@ before_install:
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/puppetlabs/bin/puppet config print modulepath"
 # telegraf
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/puppetlabs/puppet/bin/gem install toml-rb"
+# inspec
+  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- wget https://packages.chef.io/files/stable/inspec/2.3.4/ubuntu/18.04/inspec_2.3.4-1_amd64.deb" || true'
+  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- dpkg -i inspec_2.3.4-1_amd64.deb" || true'
+  - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- rpm -iUvh https://packages.chef.io/files/stable/inspec/2.3.4/el/7/inspec-2.3.4-1.el7.x86_64.rpm" || true'
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/inspec/bin/inspec exec /etc/puppetlabs/environments/production/test/integration/default/inspec --attrs /etc/puppetlabs/environments/production/test/integration/default/inspec/profile-attributes.yml | tee /tmp/inspec0.log"
 # inspec baseline that can't be set inside containers
   - sudo sysctl -w net.ipv4.tcp_timestamps=0
   - sudo sysctl -w net.ipv4.tcp_rfc1337=1
@@ -116,9 +121,6 @@ after_failure:
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- journalctl -xe --no-pager"
 
 after_script:
-  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- wget https://packages.chef.io/files/stable/inspec/2.3.4/ubuntu/18.04/inspec_2.3.4-1_amd64.deb" || true'
-  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- dpkg -i inspec_2.3.4-1_amd64.deb" || true'
-  - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- rpm -iUvh https://packages.chef.io/files/stable/inspec/2.3.4/el/7/inspec-2.3.4-1.el7.x86_64.rpm" || true'
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- find /etc/puppetlabs/environments/production/test/integration/default/"
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/inspec/bin/inspec exec /etc/puppetlabs/environments/production/test/integration/default/inspec --attrs /etc/puppetlabs/environments/production/test/integration/default/inspec/profile-attributes.yml | tee /tmp/inspec.log"
 #  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /opt/inspec/bin/inspec exec https://github.com/juju4/linux-baseline/archive/master.tar.gz"
