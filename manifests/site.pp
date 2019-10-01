@@ -264,7 +264,7 @@ session     required      pam_unix.so",
     servers   => $ntp_servers,
     restrict  => $ntp_restrict,
   }
-  class { 'fail2ban': }
+#  class { 'fail2ban': }
   class { 'osquery': }
 
   $my_sysctl_settings.each |Array $sysctl| {
