@@ -34,7 +34,7 @@ m=modules
 [ ! -d $m/osquery ] && git clone https://github.com/BIAndrews/puppet-osquery.git $m/osquery
 [ ! -d $m/ntp ] && git clone https://github.com/puppetlabs/puppetlabs-ntp $m/ntp
 [ ! -d $m/rsyslog ] && git clone https://github.com/voxpupuli/puppet-rsyslog.git $m/rsyslog
-[ ! -d $m/puppetlabs-concat ] && git clone https://github.com/puppetlabs/puppetlabs-concat.git $m/concat --branch 4.2.1
+[ ! -d $m/puppetlabs-concat ] && git clone https://github.com/puppetlabs/puppetlabs-concat.git $m/concat
 [ ! -d $m/epel ] && git clone https://github.com/jordiprats/eyp-epel.git $m/epel
 [ ! -d $m/fail2ban ] && git clone https://github.com/voxpupuli/puppet-fail2ban.git $m/fail2ban
 [ ! -d $m/extlib ] && git clone https://github.com/voxpupuli/puppet-extlib.git $m/extlib
