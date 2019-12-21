@@ -5,9 +5,9 @@ rvm:
   - 2.6
 
 env:
-## those images need pre-configuration before being usable (openssh...)
-#  - distribution: centos
-#    version: 6
+  - distribution: centos
+    version: 8
+    releasename:
   - distribution: centos
     version: 7
     releasename:
