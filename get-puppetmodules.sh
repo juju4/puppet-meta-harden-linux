@@ -21,6 +21,7 @@ m=modules
 [ ! -d $m/accounts ] && git clone https://github.com/puppetlabs/puppetlabs-accounts.git $m/accounts
 [ ! -d $m/hardening-stdlib ] && git clone https://github.com/dev-sec/puppet-hardening-stdlib $m/hardening-stdlib
 [ ! -d $m/os_hardening ] && git clone https://github.com/dev-sec/puppet-os-hardening $m/os_hardening
+[ ! -d $m/augeasproviders_core ] && git clone https://github.com/hercules-team/augeasproviders_core.git $m/augeasproviders_core
 [ ! -d $m/augeasproviders_sysctl ] && git clone https://github.com/hercules-team/augeasproviders_sysctl.git $m/augeasproviders_sysctl
 [ ! -d $m/ssh_hardening ] && git clone https://github.com/dev-sec/puppet-ssh-hardening $m/ssh_hardening
 [ ! -d $m/ssh ] && git clone https://github.com/saz/puppet-ssh $m/ssh
