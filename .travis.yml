@@ -1,13 +1,13 @@
 ---
-dist: trusty
+dist: xenial
 sudo: required
 rvm:
-  - 2.5
+  - 2.6
 
 env:
-## those images need pre-configuration before being usable (openssh...)
-#  - distribution: centos
-#    version: 6
+  - distribution: centos
+    version: 8
+    releasename:
   - distribution: centos
     version: 7
     releasename:
@@ -28,9 +28,9 @@ before_install:
   - "[ -f get-puppetmodules.sh ] && sh -x get-puppetmodules.sh"
 ## No Xenial, https://github.com/travis-ci/travis-ci/issues/5821
 #  - sudo apt install lxd
-  - echo "deb http://archive.ubuntu.com/ubuntu trusty-backports main restricted universe multiverse" | sudo tee /etc/apt/sources.list.d/trusty-backports.list
+  - echo "deb http://archive.ubuntu.com/ubuntu xenial-backports main restricted universe multiverse" | sudo tee /etc/apt/sources.list.d/xenial-backports.list
   - sudo apt-get update -qq
-  - sudo apt -t trusty-backports -y install lxd acl rng-tools -q
+  - sudo apt -t xenial-backports -y install lxd acl dnsmasq-base zfsutils-linux rng-tools -q
 ## change of group implies logout+login to apply... can't do with travis = run as root (sic)    = use 'newgrp lxd' ? = travis stalling all ...
 ## https://github.com/travis-ci/travis-ci/issues/1839   or chain: sudo -E su $USER -c "..."
   - sudo usermod -G lxd travis
@@ -41,29 +41,48 @@ before_install:
 ## pre-download base images
   - 'sudo -E su $USER -c "[ ${distribution} == ubuntu ] || lxc image copy images:${distribution}/${version}/amd64 local: --alias=${distribution}-${version}-nossh"'
   - 'sudo -E su $USER -c "[ ${distribution} == ubuntu ] && lxc image copy ubuntu:${version} local: --alias=${distribution}-${version}" || true'
-## configure lxd-bridge
-  - sudo perl -pi -e 's@^LXD_IPV4_ADDR=""@LXD_IPV4_ADDR="10.252.116.1"@;s@^LXD_IPV4_NETMASK=""@LXD_IPV4_NETMASK="255.255.255.0"@;s@^LXD_IPV4_NETWORK=""@LXD_IPV4_NETWORK="10.252.116.1/24"@;s@^LXD_IPV4_DHCP_RANGE=""@LXD_IPV4_DHCP_RANGE="10.252.116.2,10.252.116.254"@;s@^LXD_IPV4_DHCP_MAX=""@LXD_IPV4_DHCP_MAX="252"@;s@LXD_IPV6_PROXY="true"@LXD_IPV6_PROXY="false"@' /etc/default/lxd-bridge
-#  - cat /etc/default/lxd-bridge
-#  - service --status-all
+  - sudo -E su $USER -c "lxc image list"
+## configure network
+  - ifconfig -a
+  - sudo lxc info
+  - sudo lxc network list
+  - sudo lxc network create lxdbr0
+  - sudo lxc network show lxdbr0
+  - sudo lxc network attach-profile lxdbr0 default ens4
+  - sudo lxc profile device get default ens4 nictype || true
   - sudo service lxd restart
+  - ps ax | grep dnsmasq
+  - systemctl status -l --no-pager lxd || true
+  - cat /etc/network/interfaces.d/50-cloud-init.cfg
+  - sudo lxc network list
+# configure storage pool
+  - sudo lxc storage list
+  - sudo lxc storage create pool1 zfs
+  - sudo lxc storage list
+  - sudo zpool list
+  - sudo lxc profile device add default root disk path=/ pool=pool1
+  - sudo lxc profile show default
 ## ssh key for lxd_cli ?
   - ls ~/.ssh
   - ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -P ""
   - ssh-agent
 ## sudo/su get us a non-usual PATH ...
-  - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "sh -x ./test/lxd/centos-ssh-image.sh" || true'
+  - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "sh -x ./test/lxd/centos-ssh-image.sh ${version}" || true'
   - sudo -E su $USER -c "lxc launch ${distribution}-${version} run-${distribution}-${version//./}"
 #  - sudo -E su $USER -c "lxc start run-${distribution}-${version//./}"
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- env"
   - '[ "X${distribution}" != "Xalpine" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- dhclient eth0" || true'
+  - '[ "X${distribution}" == "Xalpine" -o "X${distribution}" == "Xdebian" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /etc/init.d/networking restart" || true'
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /sbin/ip addr || true"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- /sbin/route -n || true"
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- ping -c 1 8.8.8.8"
-  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- wget https://apt.puppetlabs.com/puppet5-release-${releasename}.deb" || true'
-  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- dpkg -i puppet5-release-${releasename}.deb" || true'
+  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- wget https://apt.puppetlabs.com/puppet6-release-${releasename}.deb" || true'
+  - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- dpkg -i puppet6-release-${releasename}.deb" || true'
   - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- apt-get update" || true'
   - '[ "X${distribution}" == "Xubuntu" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- apt-get -y install puppet-agent lsb-release" || true'
   - '[ "X${distribution}" == "Xcentos" -a "X${version}" == "X6" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- rpm -iUvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm" || true'
   - '[ "X${distribution}" == "Xcentos" -a "X${version}" == "X7" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- rpm -iUvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-11.noarch.rpm" || true'
-  - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- rpm -iUvh https://yum.puppet.com/puppet5/puppet5-release-el-${version//./}.noarch.rpm" || true'
+  - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- rpm -iUvh https://yum.puppet.com/puppet6/puppet6-release-el-${version//./}.noarch.rpm" || true'
   - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- yum -y update" || true'
   - '[ "X${distribution}" == "Xcentos" ] && sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- yum -y install puppet-agent redhat-lsb" || true'
 
@@ -118,6 +137,7 @@ script:
 after_failure:
   # Check what happened on systemd systems.
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- systemctl -l --no-pager status"
+  - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- systemctl -l --no-pager --failed"
   - sudo -E su $USER -c "lxc exec run-${distribution}-${version//./} -- journalctl -xe --no-pager"
 
 after_script:
