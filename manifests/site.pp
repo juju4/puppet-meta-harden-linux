@@ -317,6 +317,166 @@ session     required      pam_unix.so",
 
 #  include ::auditd
 
+  # FIXME! missing ActionResumeRetryCount, ActionQueueTimeoutEnqueue, ActionQueueSaveOnShutdown
+  class { 'rsyslog::server':
+    global_config   => {
+        'umask' => {
+            'value' => '0022',
+            'type' => legacy,
+            'priority' => 01,
+        },
+        'PrivDropToUser' => {
+            'value' => 'syslog',
+            'type' => legacy,
+        },
+        'PrivDropToGroup' => {
+            'value' => 'syslog',
+            'type' => legacy,
+        },
+        'workDirectory' => {
+            'value' => '/var/spool/rsyslog',
+        },
+        'maxMessageSize' => {
+            'value' => '64k',
+        }
+    },
+# https://unix.stackexchange.com/questions/103218/add-year-to-entries-generated-by-rsyslogd
+# https://github.com/rsyslog/rsyslog/issues/65
+    templates        => {
+        'FullTimeFormat' => {
+            'type'   => string,
+            'string' => '"%timestamp:::date-year%-%timestamp:::date-month%-%timestamp:::date-day% %timestamp:::date-hour%:%timestamp:::date-minute%:%timestamp:::date-second% %timestamp:::date-tzoffsdirection%%timestamp:::date-tzoffshour%:%timestamp:::date-tzoffsmin% %HOSTNAME% %syslogtag% %msg%"'
+        }
+    },
+    legacy_config   => {
+
+# RedHat normal setup
+#       kern_priv_rule => {
+#           key => "kern.*",
+#           value => "/dev/console"
+#        },
+        auth_priv_rule => {
+            key => "authpriv.*",
+            value => "/var/log/secure",
+        },
+        messages_rule => {
+            key => "*.info;mail.none;authpriv.none;cron.none",
+            value => "/var/log/messages",
+        },
+        mail_rule => {
+            key => "mail.*",
+            value => "-/var/log/maillog",
+        },
+        cron_rule => {
+            key => "cron.*",
+            value => "/var/log/cron",
+        },
+        emergency_rule => {
+            key => "*.emerg",
+            value => ":omusrmsg:*",
+        },
+        spooler_rule => {
+            key => "uucp,news.crit",
+            value => "/var/log/spooler",
+        },
+        boot_rule => {
+            key => "local7.*",
+            value => "/var/log/boot.log",
+        },
+# remote syslog
+#         remotesyslog => {
+#            key     => "*.*",
+#            value   => "${syslog_dest}",
+#            value   => "${syslog_dest};FullTimeFormat",
+#            value   => "${syslog_dest};RSYSLOG_SyslogProtocol23Format",
+#         }
+    },
+# https://www.rsyslog.com/doc/v8-stable/tutorials/reliable_forwarding.html
+# https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/s1-working_with_queues_in_rsyslog
+    rulesets    => {
+        auditsyslog => {
+            parameters => {
+                'queue.filename' => 'QueueAudit',
+                'queue.type' => 'LinkedList',
+                'queue.spoolDirectory' => "/var/log/rsyslog/queue",
+                'queue.size' => 10000,
+                'queue.maxdiskspace' => '10G',
+                'queue.timeoutqueue' => 3,
+                'queue.dequeuebatchsize' => 1000,
+                'queue.saveonshutdown' => 'on',
+                'queue.timeoutenqueue' => 0,
+                'action.resumeRetryCount' => -1,
+            },
+            rules      => [
+                action => {
+                    name    => 'auditlogs',
+                    # match /etc/audisp/plugins.d/syslog.conf
+                    facility => "info.*",
+                    config => {
+                        type    => 'omfwd',
+                        target  => $syslog_remotehost,
+                        port    => $syslog_remoteport,
+                        protocol => 'tcp',
+                    },
+                }
+            ],
+            stop       => true,
+        },
+        osquerysyslog => {
+            parameters => {
+                'queue.filename' => 'QueueOsquery',
+                'queue.type' => 'LinkedList',
+                'queue.spoolDirectory' => "/var/log/rsyslog/queue",
+                'queue.size' => 10000,
+                'queue.maxdiskspace' => '10G',
+                'queue.timeoutqueue' => 3,
+                'queue.dequeuebatchsize' => 1000,
+                'queue.saveonshutdown' => 'on',
+                'queue.timeoutenqueue' => 0,
+                'action.resumeRetryCount' => -1,
+            },
+            rules      => [
+                action => {
+                    name    => 'osquerylogs',
+                    facility => "local3.*",
+                    config => {
+                        type    => 'omfwd',
+                        target  => $syslog_remotehost,
+                        port    => $syslog_remoteport,
+                        protocol => 'tcp',
+                    },
+                }
+            ],
+            stop       => true,
+        },
+        remotesyslog => {
+            parameters => {
+                'queue.filename' => 'QueueRemote',
+                'queue.type' => 'LinkedList',
+                'queue.spoolDirectory' => "/var/log/rsyslog/queue",
+                'queue.size' => 10000,
+                'queue.maxdiskspace' => '1000G',
+                'queue.timeoutqueue' => 3,
+                'queue.dequeuebatchsize' => 1000,
+                'queue.saveonshutdown' => 'on',
+                'queue.timeoutenqueue' => 0,
+                'action.resumeRetryCount' => -1,
+            },
+            rules      => [
+                action => {
+                    name    => 'test',
+                    facility => "*.*",
+                    config => {
+                        type    => 'omfwd',
+                        target  => $syslog_remotehost,
+                        port    => $syslog_remoteport,
+                        protocol => 'tcp',
+                    },
+                }
+            ],
+        }
+    }
+  }
   class { '::logrotate':
     ensure => 'latest',
     config => {
